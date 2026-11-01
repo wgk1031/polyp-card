@@ -1,0 +1,17 @@
+{
+  "name": "多发息肉段内送检课题采集",
+  "short_name": "段内送检采集",
+  "description": "多发息肉肠段全送金标准研究数据采集，数据仅存本机并加密",
+  "lang": "zh-Hans",
+  "start_url": "/polyp-card/segment-study/",
+  "scope": "/polyp-card/segment-study/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#3730a3",
+  "theme_color": "#3730a3",
+  "icons": [
+    {"src": "/polyp-card/segment-study/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/polyp-card/segment-study/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/polyp-card/segment-study/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
