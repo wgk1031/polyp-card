@@ -33,7 +33,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .bk-b{min-height:44px;background:#fff!important;color:var(--pri)!important;border-color:#fff!important;padding:6px 14px}
 .bk-last{font-size:12px;color:#c7d2fe}
 #banner{max-width:1000px;margin:10px auto 0;padding:0 14px}
-main{max-width:1000px;margin:0 auto;padding:14px 14px calc(110px + env(safe-area-inset-bottom))}
+main{max-width:1000px;margin:0 auto;padding:14px 14px calc(168px + env(safe-area-inset-bottom))}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px}
 .card h2{font-size:17px;margin:0 0 10px}
 .card h3{font-size:15px;margin:14px 0 6px;color:var(--mut)}
@@ -69,7 +69,17 @@ input:disabled,select:disabled,textarea:disabled{background:#f1f5f9;color:#64748
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .row.sp{justify-content:space-between}
-.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;min-height:58px;padding:0 24px;border-radius:29px;font-size:17px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.fab{position:fixed;right:16px;bottom:calc(68px + env(safe-area-inset-bottom));z-index:30;min-height:58px;padding:0 24px;border-radius:29px;font-size:17px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:28;display:flex;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.bnav button{flex:1;min-height:52px;border:0;background:#fff;color:var(--mut);font-weight:700;cursor:pointer}
+.bnav button.on{color:var(--pri);box-shadow:inset 0 -3px 0 var(--pri)}
+.stat-n{font-size:28px;font-weight:800;line-height:1.15;color:var(--pri)}
+.kvs{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px}
+.bar{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden;margin:8px 0}
+.bar>span{display:block;height:100%;background:var(--pri)}
+.jump{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 8px;cursor:pointer;min-height:44px;font-weight:600}
+.jump small{display:block;font-weight:500;color:var(--mut)}
+.fine{font-size:12px;color:var(--mut);line-height:1.45}
 .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
 .b-path{background:var(--amb-l);color:var(--amb)}
 .b-lock{background:#eceff3;color:#334}
@@ -89,7 +99,7 @@ input:disabled,select:disabled,textarea:disabled{background:#f1f5f9;color:#64748
 .auth-box h2{margin:0 0 4px;font-size:20px}
 .auth-err{color:var(--red);font-size:14px;min-height:20px;margin:4px 0 8px}
 .auth-logo{font-size:40px;text-align:center}
-body.locked .top,body.locked #banner,body.locked main,body.locked .fab{display:none!important}
+body.locked .top,body.locked #banner,body.locked main,body.locked .fab,body.locked .bnav{display:none!important}
 .linkb{background:none;border:0;color:var(--pri);text-decoration:underline;min-height:44px;cursor:pointer;font-size:15px}
 .overlay{position:fixed;inset:0;background:rgba(10,20,30,.5);z-index:50;display:none;align-items:flex-end;justify-content:center}
 .overlay.show{display:flex}
@@ -110,7 +120,7 @@ code{background:#eef2f5;padding:1px 5px;border-radius:4px;font-size:13px}
 @media (min-width:900px){.sheet{border-radius:18px;margin:auto}.overlay{align-items:center}}
 @media (max-width:720px){
   .top{position:static}
-  main{padding:10px 10px calc(110px + env(safe-area-inset-bottom))}
+  main{padding:10px 10px calc(168px + env(safe-area-inset-bottom))}
   .grid{grid-template-columns:1fr}
   .fab{left:16px;right:16px}
 }
@@ -142,6 +152,10 @@ code{background:#eef2f5;padding:1px 5px;border-radius:4px;font-size:13px}
   <div class="sheet-f"><button class="btn" id="dlgNo">取消</button><button class="btn pri" id="dlgOk">确定</button></div>
 </div></div>
 <div class="auth hide" id="auth"><div class="auth-box" id="authBox"></div></div>
+<nav class="bnav" id="bnav" aria-label="主导航">
+  <button type="button" id="navRec">段记录</button>
+  <button type="button" id="navStat">统计</button>
+</nav>
 <div class="toast" id="toast"></div>
 <script>
 "use strict";
@@ -390,7 +404,8 @@ function dv(root,f){var el=root.querySelector('[data-f="'+f+'"]');return el?el.v
 function pwField(f,label,ac){return '<div class="fld" style="margin-bottom:12px"><label class="lb">'+esc(label)+'</label><input type="password" data-f="'+f+'" autocomplete="'+(ac||"off")+'"></div>';}
 
 /* ===== 状态 ===== */
-var S={view:"list",filter:"全部",q:"",cur:null,editPolypId:null};
+var S={view:"list",filter:"全部",q:"",statSeg:"全部",cur:null,editPolypId:null};
+var LS_GOAL="segmentStudy.goalSegments";
 var saveT=null;
 function touchSeg(){if(S.cur)S.cur.updatedAt=nowIso();}
 async function flushSave(){
@@ -438,7 +453,7 @@ function renderList(){
       '<div class="meta">更新 '+esc(fmtDT(s.updatedAt))+(s.centerCode?" · 中心 "+esc(s.centerCode):"")+(s.operatorCode?" · 术者 "+esc(s.operatorCode):"")+'</div></div>';
   }).join(""):'<div class="empty">暂无段记录。点下方「新建段记录」开始。</div>';
   $("#main").innerHTML=
-    '<div class="card"><div class="row sp" style="margin-bottom:10px"><h2 style="margin:0">段记录</h2><button class="btn pri sm" id="btnNew">＋ 新建段记录</button></div>'+
+    '<div class="card"><div class="row sp" style="margin-bottom:10px"><h2 style="margin:0">段记录</h2><div class="row"><button class="btn sm" id="btnStats">统计</button><button class="btn pri sm" id="btnNew">＋ 新建段记录</button></div></div>'+
     '<div class="fld"><input type="search" id="q" placeholder="搜病例ID / 肠段 / 中心 / 术者" value="'+esc(S.q)+'"></div>'+
     '<div class="filters">'+filters+'</div>'+
     '<div style="font-size:13px;color:var(--mut);margin-bottom:8px">共 '+items.length+' 条 · 库内 '+cache.size+' 条</div>'+body+'</div>'+
@@ -446,6 +461,7 @@ function renderList(){
     '<div class="row" style="margin-bottom:10px"><button class="btn" id="bExp">⬇ 导出JSON</button><button class="btn" id="bImp">⬆ 导入JSON</button><button class="btn" id="bPw">修改密码</button><button class="btn dng" id="bClear">清空本机</button></div>'+
     '<ul class="t"><li>本工具不做术中送检推荐；只采集段内全分瓶研究所需字段。</li><li>存储：'+esc(backendName)+' · 用户 '+esc(sessUser)+'</li><li>空闲 15 分钟自动锁定。密码无法找回。</li></ul></div>';
   $("#btnNew").onclick=function(){newSegment();};
+  $("#btnStats").onclick=function(){showView("stats");};
   $("#q").oninput=function(){S.q=this.value;renderList();};
   $("#main").querySelectorAll("[data-filter]").forEach(function(b){b.onclick=function(){S.filter=b.getAttribute("data-filter");renderList();};});
   $("#main").querySelectorAll("[data-open]").forEach(function(el){el.onclick=function(){openSegment(el.getAttribute("data-open"));};});
@@ -780,13 +796,130 @@ function startIdle(){touchAct();clearInterval(idleTimer);idleTimer=setInterval(c
 ["pointerdown","keydown","touchstart","input","scroll","click"].forEach(function(ev){document.addEventListener(ev,touchAct,{passive:true,capture:true});});
 document.addEventListener("visibilitychange",function(){if(!document.hidden)checkIdle();});
 
-function render(){if(S.view==="edit"&&S.cur)renderEdit();else renderList();}
+var PATH_DASH=[["HP","增生性"],["腺瘤","腺瘤"],["SSL","SSL"],["TSA","TSA"],["癌","癌"],["其他","其他"]];
+function readGoal(){var t=(lsGet(LS_GOAL)||"").trim();if(!t)return null;var n=parseInt(t,10);return n>0?n:null;}
+function writeGoal(v){if(v==null||v==="")lsDel(LS_GOAL);else lsSet(LS_GOAL,String(v));}
+function statPool(){
+  var arr=Array.from(cache.values());
+  if(S.statSeg&&S.statSeg!=="全部")arr=arr.filter(function(s){return s.segment===S.statSeg;});
+  arr.sort(function(a,b){var d=(a.examDate||"").localeCompare(b.examDate||"");return d||(a.caseId||"").localeCompare(b.caseId||"");});
+  return arr;
+}
+function segLine(s){return (s.caseId||"（未填病例ID）")+" · "+(s.examDate||"—")+" · "+(s.segment||"—");}
+/* 进展期：已回填息肉命中任一。最大径/绒毛/异型未填则跳过对应判据，不当作阴性以外的命中。无绒毛比例字段，不按≥25%判断。 */
+function isAdvanced(p){
+  if(!p||pathPending(p))return false;
+  if(p.pathType==="癌")return true;
+  var size=parseNum(p.sizeMm),sizeOk=!isNaN(size);
+  if(p.pathType==="腺瘤"&&sizeOk&&size>=10)return true;
+  if(p.villous==="有")return true;
+  if(p.dysplasia==="高级别"||p.dysplasia==="浸润癌")return true;
+  if(p.pathType==="SSL"&&(p.sslDysplasia==="是"||(sizeOk&&size>=10)))return true;
+  return false;
+}
+function dashboardData(segs){
+  var by={};SEG_OPTS.forEach(function(name){by[name]=0;});
+  var polyps=0,gs=0,gsFilled=0,nonGs=0,adv=0;
+  var pathCounts={};PATH_DASH.forEach(function(x){pathCounts[x[0]]=0;});
+  var pending=[],mismatch=[],nong=[],unlock=[],legacy=[];
+  segs.forEach(function(s){
+    if(by[s.segment]!=null)by[s.segment]++;
+    var ps=s.polyps||[],gsN=0,gsPend=0,non=0,pendAll=0;
+    polyps+=ps.length;
+    ps.forEach(function(p){
+      if(pathPending(p))pendAll++;
+      if(!inGoldStandard(p))non++;
+      else{gsN++;if(pathPending(p))gsPend++;else gsFilled++;}
+      if(!pathPending(p)){
+        if(pathCounts[p.pathType]==null)pathCounts["其他"]++;
+        else pathCounts[p.pathType]++;
+        if(isAdvanced(p))adv++;
+      }
+      if(ulcerLegacyTruthy(p.ulcerNodule))legacy.push({s:s,p:p});
+    });
+    gs+=gsN;nonGs+=non;
+    if(gsPend)pending.push(s);
+    var mm=countMismatch(s);if(mm)mismatch.push({s:s,mm:mm});
+    if(non)nong.push({s:s,n:non});
+    if(!s.locked&&ps.length>0&&pendAll===0)unlock.push(s);
+  });
+  return {n:segs.length,by:by,polyps:polyps,gs:gs,gsFilled:gsFilled,nonGs:nonGs,adv:adv,pathCounts:pathCounts,pending:pending,mismatch:mismatch,nong:nong,unlock:unlock,legacy:legacy};
+}
+function jumpBtn(s,text,sub,pid){
+  return '<button type="button" class="jump" data-sid="'+esc(s.id)+'"'+(pid?' data-pid="'+esc(pid)+'"':'')+'>'+esc(text)+(sub?'<small>'+esc(sub)+'</small>':'')+'</button>';
+}
+function renderStats(){
+  if(!sessKey)return;
+  $("#fab").classList.add("hide");
+  var segs=statPool(),d=dashboardData(segs),goal=readGoal();
+  var avg=d.n?(Math.round(d.polyps/d.n*10)/10).toFixed(1):"—";
+  var segChips=["全部"].concat(SEG_OPTS).map(function(name){
+    return '<button type="button" class="chip'+(S.statSeg===name?" on":"")+'" data-statseg="'+esc(name)+'">'+esc(name)+'</button>';
+  }).join("");
+  var byHtml=SEG_OPTS.map(function(name){return '<div class="kvs"><span>'+esc(name)+'</span><b>'+d.by[name]+'</b></div>';}).join("");
+  var bar="";
+  if(goal){
+    var pct=Math.max(0,Math.min(100,Math.round(d.n/goal*100)));
+    bar='<div class="bar" aria-label="入组进度"><span style="width:'+pct+'%"></span></div><div>已入组 '+d.n+' / 目标 '+goal+(d.n>goal?' · 已超过目标':'')+'</div>';
+  }
+  var pendHtml=d.pending.length?d.pending.map(function(s){return jumpBtn(s,segLine(s),"待回填金标准病理");}).join(""):'<div class="empty">无</div>';
+  var misHtml=d.mismatch.length?d.mismatch.map(function(x){return jumpBtn(x.s,segLine(x.s),"计划 "+x.mm.plan+" ≠ 实录 "+x.mm.n);}).join(""):'<div class="empty">无</div>';
+  var nonHtml=d.nong.length?d.nong.map(function(x){return jumpBtn(x.s,segLine(x.s),"不入金标准 "+x.n+" 枚");}).join(""):'<div class="empty">无</div>';
+  var unHtml=d.unlock.length?d.unlock.map(function(s){return jumpBtn(s,segLine(s),"病理已全部回填，尚未锁定");}).join(""):'<div class="empty">无</div>';
+  var legHtml=d.legacy.length?d.legacy.map(function(x){return jumpBtn(x.s,segLine(x.s),"息肉 #"+x.p.seq+" 旧字段待补选",x.p.id);}).join(""):'<div class="empty">无</div>';
+  var dist=PATH_DASH.map(function(x){return '<div class="kvs"><span>'+esc(x[1])+'</span><b>'+d.pathCounts[x[0]]+'</b></div>';}).join("");
+  $("#main").innerHTML=
+    '<div class="card"><h2 style="margin-top:0">统计看板</h2><p class="fine" style="margin-top:0">只读。只按本机已解锁的记录计算，随下方肠段筛选变化。</p><div class="filters">'+segChips+'</div></div>'+
+    '<div class="card"><h2>入组肠段</h2><div class="stat-n">'+d.n+'</div>'+byHtml+
+    '<div class="fld" style="margin-top:12px"><label class="lb">目标段数</label><input type="number" inputmode="numeric" min="1" id="goalIn" placeholder="留空表示不设" value="'+(goal==null?"":goal)+'"></div>'+
+    (bar||'<p class="fine">设置目标段数后显示进度（已入组/目标）。</p>')+'</div>'+
+    '<div class="card"><h2>息肉</h2><div class="kvs"><span>息肉总数</span><b class="stat-n">'+d.polyps+'</b></div><div class="kvs"><span>每段平均枚数</span><b>'+avg+'</b></div></div>'+
+    '<div class="card"><h2>病理回填</h2><div class="stat-n">'+d.gsFilled+' / '+d.gs+'</div><p class="fine">已回填 / 入金标准息肉。不入金标准 '+d.nonGs+' 枚，单列、不计入分母。</p><h3>待回填的段</h3>'+pendHtml+'</div>'+
+    '<div class="card"><h2>数据质量</h2><h3>计划枚数 ≠ 实录枚数</h3>'+misHtml+'<h3>含不入金标准息肉</h3>'+nonHtml+'<h3>病理已回填但未锁定</h3>'+unHtml+'<h3>旧字段待人工补选</h3>'+legHtml+'</div>'+
+    '<div class="card"><h2>病理分布</h2><p class="fine">仅已回填病理的息肉。应用内「HP」显示为增生性。</p>'+dist+
+    '<h3>进展期病变</h3><div class="stat-n">'+d.adv+'</div>'+
+    '<p class="fine">角注：只在已回填息肉中判断，命中任一即计入。癌＝病理类型「癌」。腺瘤≥10mm＝类型「腺瘤」且最大径≥10（最大径未填则跳过大小）。绒毛成分＝「有」（没有绒毛比例，不按≥25%判断；「未填」跳过）。高级别异型＝异型程度「高级别」或「浸润癌」（「未填」跳过）。SSL＝类型「SSL」且（SSL伴异型为「是」，或最大径≥10；大小未填则只看伴异型）。不入金标准但已回填的息肉仍计入分布和进展期，不计入上方回填分母。</p></div>';
+  $("#main").querySelectorAll("[data-statseg]").forEach(function(b){b.onclick=function(){S.statSeg=b.getAttribute("data-statseg");renderStats();};});
+  var goalIn=$("#goalIn");
+  goalIn.onchange=function(){
+    var t=this.value.trim();
+    if(!t){writeGoal("");renderStats();return;}
+    var n=parseInt(t,10);
+    if(!(n>0)){this.value=readGoal()==null?"":String(readGoal());return;}
+    writeGoal(n);renderStats();
+  };
+  $("#main").querySelectorAll("[data-sid]").forEach(function(el){
+    el.onclick=function(){var id=el.getAttribute("data-sid"),pid=el.getAttribute("data-pid");openSegment(id).then(function(){if(pid)openPolyp(pid);});};
+  });
+  renderBanner();
+  syncNav();
+}
+function syncNav(){
+  var a=$("#navRec"),b=$("#navStat");if(!a||!b)return;
+  a.classList.toggle("on",S.view!=="stats");
+  b.classList.toggle("on",S.view==="stats");
+}
+async function showView(name){
+  if(!sessKey)return;
+  if(S.view==="edit"&&saveT)await flushSave();
+  S.editPolypId=null;$("#ov").classList.remove("show");
+  if(name!=="edit")S.cur=null;
+  S.view=name;render();window.scrollTo(0,0);
+}
+function render(){
+  if(S.view==="edit"&&S.cur)renderEdit();
+  else if(S.view==="stats")renderStats();
+  else renderList();
+  syncNav();
+}
 
 async function init(){
   $("#topExport").onclick=exportJson;$("#topImport").onclick=pickImport;
   $("#lockBtn").onclick=function(){lockNow("已锁定。");};
   $("#impFile").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;var r=new FileReader();r.onload=function(){importJsonText(String(r.result));};r.readAsText(f,"utf-8");});
   $("#fab").onclick=function(){if(S.view==="edit")addPolyps(1);};
+  $("#navRec").onclick=function(){showView("list");};
+  $("#navStat").onclick=function(){showView("stats");};
   $("#ovOk").onclick=closeSheet;$("#ovX").onclick=closeSheet;
   $("#ov").addEventListener("click",function(e){if(e.target===this)closeSheet();});
   $("#ovDel").onclick=function(){var p=curPolyp();if(!p||morphLocked())return;if(confirm("确认删除此息肉？")){S.cur.polyps=S.cur.polyps.filter(function(x){return x.id!==p.id;});closeSheet();saveSoon();renderEdit();}};
