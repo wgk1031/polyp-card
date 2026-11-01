@@ -170,7 +170,7 @@ var POS_OPTS=["未填","近口侧","中","近肛侧"];
 var CONF_OPTS=["未填","确信","可能","不确定"];
 var PATH_TYPE=["待报","腺瘤","SSL","HP","TSA","癌","其他"];
 var DYSP_OPTS=["未填","无","低级别","高级别","浸润癌"];
-var VILL_OPTS=["未填","无","有"];
+var VILL_CHOICES=[["","未填"],["none","无"],["lt25","<25%"],["ge25","≥25%"]];
 var SSL_DYS=["不适用","是","否"];
 var MARGIN_OPTS=["未填","累及","未累及","不适用","不详"];
 var FILTERS=["全部","待补病理","已锁定"];
@@ -186,7 +186,7 @@ function emptyPolyp(seq){
     nice:"未选",resection:"未选",completeResection:"未选",retrieved:true,
     jnet:"未评",sslLike:false,sslMucusCap:false,sslCloudSurface:false,sslIndistinctBorder:false,sslIrregularShape:false,
     relativePos:"未填",surfaceErosionUlcer:"none",surfaceNodular:false,opticalConf:"未填",
-    pathType:"待报",dysplasia:"未填",villous:"未填",sslDysplasia:"不适用",margin:"未填",pathDate:""};
+    pathType:"待报",dysplasia:"未填",villous:"",sslDysplasia:"不适用",margin:"未填",pathDate:""};
 }
 function emptySegment(){
   var t=nowIso();
@@ -247,12 +247,34 @@ function applyUlcerMigration(raw,o){
   else if(/溃疡|白苔/.test(s)){if(o.surfaceErosionUlcer==="none")o.surfaceErosionUlcer="ulcer";mapped=true;}
   if(!mapped)o.ulcerNodule=v;
 }
+/* 旧绒毛「无」→ none；「有」无法区分比例，原样保留。未填保存为空字符串。 */
+function normVillous(v){
+  if(v==null)return "";
+  v=String(v).trim();
+  if(v===""||v==="未填")return "";
+  if(v==="无")return "none";
+  return v;
+}
+function villousNeedsChoice(p){
+  var v=p&&p.villous;
+  return v==="有"||(v&&v!=="none"&&v!=="lt25"&&v!=="ge25");
+}
+function villousSelect(cur){
+  var known=false;
+  var html=VILL_CHOICES.map(function(it){
+    if(cur===it[0])known=true;
+    return '<option value="'+esc(it[0])+'"'+(cur===it[0]?" selected":"")+'>'+esc(it[1])+'</option>';
+  }).join("");
+  if(!known)html+='<option value="'+esc(cur)+'" selected>'+esc(cur==="有"?"有（请补选）":String(cur))+'</option>';
+  return html;
+}
 function normPolyp(p){var d=emptyPolyp(1),o={};for(var k in d)o[k]=(p&&p[k]!==undefined&&p[k]!==null)?p[k]:d[k];
   if(typeof o.id!=="string"||!o.id)o.id=uid();
   ["redness","depressed","sslLike","retrieved","surfaceNodular"].concat(SSL_FLAGS.map(function(it){return it[0];})).forEach(function(k){o[k]=!!o[k];});
   ["bottle","sizeMm","pathDate"].forEach(function(k){o[k]=String(o[k]==null?"":o[k]);});
   o.seq=parseInt(o.seq,10);if(!(o.seq>0))o.seq=1;
   if(o.surfaceErosionUlcer!=="erosion"&&o.surfaceErosionUlcer!=="ulcer")o.surfaceErosionUlcer="none";
+  o.villous=normVillous(o.villous);
   applyUlcerMigration(p,o);
   if(!o.sslLike)clearSslFlags(o);
   return o;}
@@ -608,7 +630,8 @@ function renderPolypSheet(){
     '<div class="grid">'+
     '<div class="fld"><label class="lb">病理类型</label><select data-pk="pathType">'+selOpts(PATH_TYPE,p.pathType)+'</select></div>'+
     '<div class="fld"><label class="lb">异型程度</label><select data-pk="dysplasia">'+selOpts(DYSP_OPTS,p.dysplasia)+'</select></div>'+
-    '<div class="fld"><label class="lb">绒毛成分</label><select data-pk="villous">'+selOpts(VILL_OPTS,p.villous)+'</select></div>'+
+    '<div class="fld"><label class="lb">绒毛成分</label><select data-pk="villous">'+villousSelect(p.villous)+'</select>'+
+    (villousNeedsChoice(p)?'<div class="note n-warn" style="margin-top:8px"><b>请补选绒毛比例</b> 旧值「有」无法区分 &lt;25% 与 ≥25%，原值已保留。</div>':'')+'</div>'+
     '<div class="fld"><label class="lb">SSL 伴异型</label><select data-pk="sslDysplasia">'+selOpts(SSL_DYS,p.sslDysplasia)+'</select></div>'+
     '<div class="fld"><label class="lb">切缘</label><select data-pk="margin">'+selOpts(MARGIN_OPTS,p.margin)+'</select></div>'+
     '<div class="fld"><label class="lb">病理报告日</label><input type="date" data-pk="pathDate" value="'+esc(p.pathDate)+'"></div>'+
@@ -626,7 +649,7 @@ function renderPolypSheet(){
       if(k==="completeResection"||k==="sizeMm"){/* refresh badges in sheet */} 
     }
     el.addEventListener("input",apply);el.addEventListener("change",function(){apply();
-      if(k==="completeResection")renderPolypSheet();
+      if(k==="completeResection"||k==="villous")renderPolypSheet();
     });
   });
   $("#ovBody").querySelectorAll("[data-yn]").forEach(function(wrap){
@@ -655,7 +678,13 @@ function renderPolypSheet(){
 function exportSegments(list){
   return list.map(function(seg){
     var s=JSON.parse(JSON.stringify(seg));
-    s.polyps=(s.polyps||[]).map(function(p){var c=JSON.parse(JSON.stringify(p));c.waspCount=waspCountOf(p);return c;});
+    s.polyps=(s.polyps||[]).map(function(p){
+      var c=JSON.parse(JSON.stringify(p)),f=lesionFlags(p);
+      c.waspCount=waspCountOf(p);
+      c.advancedAdenoma=f.advancedAdenoma;c.advancedSerrated=f.advancedSerrated;
+      c.advancedNeoplasia=f.advancedNeoplasia;c.hpGe10=f.hpGe10;
+      return c;
+    });
     return s;
   });
 }
@@ -806,25 +835,31 @@ function statPool(){
   return arr;
 }
 function segLine(s){return (s.caseId||"（未填病例ID）")+" · "+(s.examDate||"—")+" · "+(s.segment||"—");}
-/* 进展期：已回填息肉命中任一。最大径/绒毛/异型未填则跳过对应判据，不当作阴性以外的命中。无绒毛比例字段，不按≥25%判断。 */
-function isAdvanced(p){
-  if(!p||pathPending(p))return false;
-  if(p.pathType==="癌")return true;
-  var size=parseNum(p.sizeMm),sizeOk=!isNaN(size);
-  if(p.pathType==="腺瘤"&&sizeOk&&size>=10)return true;
-  if(p.villous==="有")return true;
-  if(p.dysplasia==="高级别"||p.dysplasia==="浸润癌")return true;
-  if(p.pathType==="SSL"&&(p.sslDysplasia==="是"||(sizeOk&&size>=10)))return true;
-  return false;
+/* USMSTF 2020 / ESGE 2020。大小未填、绒毛为「有」或未填时跳过该判据，不因此命中。HP≥10 不并入进展期。 */
+function lesionFlags(p){
+  var size=parseNum(p&&p.sizeMm),sizeOk=!isNaN(size);
+  var cancer=!!p&&(p.pathType==="癌"||p.dysplasia==="浸润癌");
+  var advAd=false,advSer=false;
+  if(p&&p.pathType==="腺瘤"){
+    if(sizeOk&&size>=10)advAd=true;
+    if(p.villous==="ge25")advAd=true;
+    if(p.dysplasia==="高级别")advAd=true;
+  }
+  if(p&&p.pathType==="TSA")advSer=true;
+  if(p&&p.pathType==="SSL"){
+    if(p.sslDysplasia==="是")advSer=true;
+    if(sizeOk&&size>=10)advSer=true;
+  }
+  return {advancedAdenoma:advAd,advancedSerrated:advSer,advancedNeoplasia:!!(advAd||advSer||cancer),hpGe10:!!(p&&p.pathType==="HP"&&sizeOk&&size>=10),cancer:cancer};
 }
 function dashboardData(segs){
   var by={};SEG_OPTS.forEach(function(name){by[name]=0;});
-  var polyps=0,gs=0,gsFilled=0,nonGs=0,adv=0;
+  var polyps=0,gs=0,gsFilled=0,nonGs=0,advAd=0,advSer=0,cancerN=0,advNeo=0,hp10=0,neoSeg=0;
   var pathCounts={};PATH_DASH.forEach(function(x){pathCounts[x[0]]=0;});
-  var pending=[],mismatch=[],nong=[],unlock=[],legacy=[];
+  var pending=[],mismatch=[],nong=[],unlock=[],legacy=[],villousFix=[];
   segs.forEach(function(s){
     if(by[s.segment]!=null)by[s.segment]++;
-    var ps=s.polyps||[],gsN=0,gsPend=0,non=0,pendAll=0;
+    var ps=s.polyps||[],gsN=0,gsPend=0,non=0,pendAll=0,segNeo=false;
     polyps+=ps.length;
     ps.forEach(function(p){
       if(pathPending(p))pendAll++;
@@ -833,17 +868,24 @@ function dashboardData(segs){
       if(!pathPending(p)){
         if(pathCounts[p.pathType]==null)pathCounts["其他"]++;
         else pathCounts[p.pathType]++;
-        if(isAdvanced(p))adv++;
       }
+      var f=lesionFlags(p);
+      if(f.advancedAdenoma)advAd++;
+      if(f.advancedSerrated)advSer++;
+      if(f.cancer)cancerN++;
+      if(f.advancedNeoplasia){advNeo++;segNeo=true;}
+      if(f.hpGe10)hp10++;
       if(ulcerLegacyTruthy(p.ulcerNodule))legacy.push({s:s,p:p});
+      if(villousNeedsChoice(p))villousFix.push({s:s,p:p});
     });
+    if(segNeo)neoSeg++;
     gs+=gsN;nonGs+=non;
     if(gsPend)pending.push(s);
     var mm=countMismatch(s);if(mm)mismatch.push({s:s,mm:mm});
     if(non)nong.push({s:s,n:non});
     if(!s.locked&&ps.length>0&&pendAll===0)unlock.push(s);
   });
-  return {n:segs.length,by:by,polyps:polyps,gs:gs,gsFilled:gsFilled,nonGs:nonGs,adv:adv,pathCounts:pathCounts,pending:pending,mismatch:mismatch,nong:nong,unlock:unlock,legacy:legacy};
+  return {n:segs.length,by:by,polyps:polyps,gs:gs,gsFilled:gsFilled,nonGs:nonGs,advAd:advAd,advSer:advSer,cancerN:cancerN,advNeo:advNeo,neoSeg:neoSeg,hp10:hp10,pathCounts:pathCounts,pending:pending,mismatch:mismatch,nong:nong,unlock:unlock,legacy:legacy,villousFix:villousFix};
 }
 function jumpBtn(s,text,sub,pid){
   return '<button type="button" class="jump" data-sid="'+esc(s.id)+'"'+(pid?' data-pid="'+esc(pid)+'"':'')+'>'+esc(text)+(sub?'<small>'+esc(sub)+'</small>':'')+'</button>';
@@ -867,6 +909,7 @@ function renderStats(){
   var nonHtml=d.nong.length?d.nong.map(function(x){return jumpBtn(x.s,segLine(x.s),"不入金标准 "+x.n+" 枚");}).join(""):'<div class="empty">无</div>';
   var unHtml=d.unlock.length?d.unlock.map(function(s){return jumpBtn(s,segLine(s),"病理已全部回填，尚未锁定");}).join(""):'<div class="empty">无</div>';
   var legHtml=d.legacy.length?d.legacy.map(function(x){return jumpBtn(x.s,segLine(x.s),"息肉 #"+x.p.seq+" 旧字段待补选",x.p.id);}).join(""):'<div class="empty">无</div>';
+  var vilHtml=d.villousFix.length?d.villousFix.map(function(x){return jumpBtn(x.s,segLine(x.s),"息肉 #"+x.p.seq+" 请补选绒毛比例",x.p.id);}).join(""):'<div class="empty">无</div>';
   var dist=PATH_DASH.map(function(x){return '<div class="kvs"><span>'+esc(x[1])+'</span><b>'+d.pathCounts[x[0]]+'</b></div>';}).join("");
   $("#main").innerHTML=
     '<div class="card"><h2 style="margin-top:0">统计看板</h2><p class="fine" style="margin-top:0">只读。只按本机已解锁的记录计算，随下方肠段筛选变化。</p><div class="filters">'+segChips+'</div></div>'+
@@ -875,10 +918,16 @@ function renderStats(){
     (bar||'<p class="fine">设置目标段数后显示进度（已入组/目标）。</p>')+'</div>'+
     '<div class="card"><h2>息肉</h2><div class="kvs"><span>息肉总数</span><b class="stat-n">'+d.polyps+'</b></div><div class="kvs"><span>每段平均枚数</span><b>'+avg+'</b></div></div>'+
     '<div class="card"><h2>病理回填</h2><div class="stat-n">'+d.gsFilled+' / '+d.gs+'</div><p class="fine">已回填 / 入金标准息肉。不入金标准 '+d.nonGs+' 枚，单列、不计入分母。</p><h3>待回填的段</h3>'+pendHtml+'</div>'+
-    '<div class="card"><h2>数据质量</h2><h3>计划枚数 ≠ 实录枚数</h3>'+misHtml+'<h3>含不入金标准息肉</h3>'+nonHtml+'<h3>病理已回填但未锁定</h3>'+unHtml+'<h3>旧字段待人工补选</h3>'+legHtml+'</div>'+
+    '<div class="card"><h2>数据质量</h2><h3>计划枚数 ≠ 实录枚数</h3>'+misHtml+'<h3>含不入金标准息肉</h3>'+nonHtml+'<h3>病理已回填但未锁定</h3>'+unHtml+'<h3>旧字段待人工补选</h3>'+legHtml+'<h3>绒毛比例待补选</h3>'+vilHtml+'</div>'+
     '<div class="card"><h2>病理分布</h2><p class="fine">仅已回填病理的息肉。应用内「HP」显示为增生性。</p>'+dist+
-    '<h3>进展期病变</h3><div class="stat-n">'+d.adv+'</div>'+
-    '<p class="fine">角注：只在已回填息肉中判断，命中任一即计入。癌＝病理类型「癌」。腺瘤≥10mm＝类型「腺瘤」且最大径≥10（最大径未填则跳过大小）。绒毛成分＝「有」（没有绒毛比例，不按≥25%判断；「未填」跳过）。高级别异型＝异型程度「高级别」或「浸润癌」（「未填」跳过）。SSL＝类型「SSL」且（SSL伴异型为「是」，或最大径≥10；大小未填则只看伴异型）。不入金标准但已回填的息肉仍计入分布和进展期，不计入上方回填分母。</p></div>';
+    '<h3>进展期（USMSTF 2020 / ESGE 2020）</h3>'+
+    '<div class="kvs"><span>进展期腺瘤</span><b>'+d.advAd+'</b></div>'+
+    '<div class="kvs"><span>进展期锯齿状病变</span><b>'+d.advSer+'</b></div>'+
+    '<div class="kvs"><span>癌</span><b>'+d.cancerN+'</b></div>'+
+    '<div class="kvs"><span>进展期肿瘤合计</span><b>'+d.advNeo+'</b></div>'+
+    '<div class="kvs"><span>含进展期肿瘤的肠段数</span><b>'+d.neoSeg+'</b></div>'+
+    '<div class="kvs"><span>HP≥10mm</span><b>'+d.hp10+'</b></div>'+
+    '<p class="fine">角注：按息肉计数，同一息肉只进合计一次。进展期腺瘤（不含癌）＝病理类型「腺瘤」，且满足任一：最大径≥10mm、绒毛≥25%、异型程度「高级别」。进展期锯齿状病变＝SSL伴异型（不论大小）、SSL且最大径≥10mm、或 TSA（不论大小）。癌＝病理类型「癌」或异型「浸润癌」。进展期肿瘤＝进展期腺瘤＋进展期锯齿状病变＋癌。HP≥10mm 单列，不并入以上各项。最大径未填则跳过大小判据；绒毛为旧值「有」或未填则跳过绒毛判据，不按≥25%命中。</p></div>';
   $("#main").querySelectorAll("[data-statseg]").forEach(function(b){b.onclick=function(){S.statSeg=b.getAttribute("data-statseg");renderStats();};});
   var goalIn=$("#goalIn");
   goalIn.onchange=function(){
