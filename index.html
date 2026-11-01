@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#0b6e75">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="息肉送检卡">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>结肠息肉送检随访决策卡</title>
+<style>
+:root{
+  --bg:#f3f6f9;--card:#fff;--ink:#17212b;--mut:#5d6b7a;--line:#dbe3ea;
+  --pri:#0b6e75;--pri-d:#08565c;--pri-l:#e0f2f3;
+  --red:#b42318;--red-l:#fdecea;--amb:#a15c07;--amb-l:#fff4e0;--grn:#177245;--grn-l:#e3f6ea;--blu:#1d4ed8;--blu-l:#e8efff;--pur:#6d28d9;--pur-l:#f0e9ff;
+  --r:12px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:20;background:var(--pri);color:#fff;padding:calc(env(safe-area-inset-top) + 8px) 16px 0}
+.top-in{max-width:1000px;margin:0 auto}
+.top h1{font-size:18px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.top h1 small{font-weight:400;font-size:12px;opacity:.85}
+.tabs{display:flex;gap:4px}
+.tab{flex:1;min-height:44px;border:0;background:transparent;color:#d6eef0;font-weight:600;border-bottom:3px solid transparent;cursor:pointer}
+.tab.on{color:#fff;border-bottom-color:#fff}
+.bk-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.bk-b{min-height:44px;background:#fff!important;color:var(--pri)!important;border-color:#fff!important;padding:6px 14px}
+.bk-last{font-size:12px;color:#d6eef0}
+#banner{max-width:1000px;margin:10px auto 0;padding:0 14px}
+#banner .note{margin:0}
+.sum{background:#0a5b61;color:#fff;font-size:14px;padding:6px 16px}
+.sum-in{max-width:1000px;margin:0 auto;display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+main{max-width:1000px;margin:0 auto;padding:14px 14px calc(110px + env(safe-area-inset-bottom))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:14px}
+.card h2{font-size:17px;margin:0 0 10px}
+.card h3{font-size:15px;margin:14px 0 6px;color:var(--mut)}
+.note{border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:14px;border:1px solid}
+.note b{margin-right:4px}
+.n-info{background:var(--blu-l);border-color:#c5d5ff;color:#1e3a8a}
+.n-warn{background:var(--amb-l);border-color:#f4d9a6;color:#6b3f05}
+.n-bad{background:var(--red-l);border-color:#f5c2bd;color:#7a1a12}
+.n-ok{background:var(--grn-l);border-color:#b7e3c6;color:#0f5132}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.grid.g3{grid-template-columns:repeat(3,1fr)}
+.fld label.lb,.lb{display:block;font-size:13px;color:var(--mut);margin-bottom:4px;font-weight:600}
+input[type=text],input[type=password],input[type=date],input[type=search],input[type=number],select,textarea{width:100%;min-height:48px;padding:10px 12px;border:1px solid #c3cfda;border-radius:10px;background:#fff;font-size:16px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri);border-color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:46px;min-width:56px;padding:8px 14px;border:1.5px solid #c3cfda;background:#fff;border-radius:999px;cursor:pointer;font-weight:600;color:#33414f}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.chip.sm{min-height:40px;padding:6px 12px;font-size:14px}
+.sw{display:block;cursor:pointer;position:relative}
+.sw.rd span::before{width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #98a6b3}
+.sw.rd input:checked+span::before{background:radial-gradient(circle,var(--pri) 45%,#fff 50%);border-color:var(--pri)}
+.auth{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#0b6e75,#0a4f55);overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top) + 24px) 16px 40px}
+.auth-box{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:22px 18px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.auth-box h2{margin:0 0 4px;font-size:20px}
+.auth-box .fld{margin-bottom:12px}
+.auth-err{color:var(--red);font-size:14px;min-height:20px;margin:4px 0 8px}
+.auth-logo{font-size:40px;text-align:center}
+body.locked .top,body.locked #banner,body.locked main,body.locked .sum,body.locked .fab{display:none!important}
+.linkb{background:none;border:0;color:var(--pri);text-decoration:underline;min-height:44px;cursor:pointer;font-size:15px}
+.sw input{position:absolute;opacity:0;pointer-events:none}
+.sw span{display:flex;align-items:center;gap:10px;min-height:50px;padding:8px 12px;border:1.5px solid #c3cfda;border-radius:10px;background:#fff;font-weight:600}
+.sw span::before{content:"";flex:none;width:44px;height:26px;border-radius:13px;background:#c5ced6;transition:.15s;background-image:radial-gradient(circle at 13px 13px,#fff 10px,transparent 11px);background-repeat:no-repeat}
+.sw input:checked+span{border-color:var(--pri);background:var(--pri-l)}
+.sw input:checked+span::before{background-color:var(--pri);background-image:radial-gradient(circle at 31px 13px,#fff 10px,transparent 11px)}
+.sw input:focus-visible+span{outline:2px solid var(--pri)}
+.btn{min-height:50px;padding:10px 18px;border-radius:10px;border:1.5px solid var(--pri);background:#fff;color:var(--pri);font-weight:700;cursor:pointer}
+.btn.pri{background:var(--pri);color:#fff}
+.btn.pri:active{background:var(--pri-d)}
+.btn.dng{border-color:var(--red);color:var(--red)}
+.btn.sm{min-height:42px;padding:6px 12px;font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.sp{justify-content:space-between}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;min-height:58px;padding:0 24px;border-radius:29px;font-size:18px;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:700;white-space:nowrap}
+.b-sep{background:var(--amb-l);color:var(--amb)}
+.b-skip{background:var(--grn-l);color:var(--grn)}
+.b-merge{background:var(--blu-l);color:var(--blu)}
+.b-rep{background:var(--pur-l);color:var(--pur)}
+.b-man{background:#eceff3;color:#344}
+.b-bad{background:var(--red-l);color:var(--red)}
+.pc{border:1px solid var(--line);border-left:5px solid var(--pri);border-radius:10px;padding:12px;margin-bottom:10px;background:#fff}
+.pc.t-sep{border-left-color:#e0951a}.pc.t-skip{border-left-color:#2e9e5f}.pc.t-merge{border-left-color:#3b6ef0}.pc.t-rep{border-left-color:#7c3aed}
+.pc-h{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.pc-h .t{font-weight:700;font-size:17px}
+.pc-h .m{color:var(--mut);font-size:14px}
+.pc .why{font-size:14px;color:#33414f;margin:4px 0 8px}
+.pc .meta{font-size:13px;color:var(--mut);margin-top:8px}
+.sub{font-size:13px;color:var(--mut);margin:8px 0 4px}
+table.lst{width:100%;border-collapse:collapse}
+table.lst th{text-align:left;font-size:13px;color:var(--mut);padding:8px;border-bottom:2px solid var(--line);white-space:nowrap}
+table.lst td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.lst tr.rw:hover{background:#f7fafc}
+.empty{text-align:center;color:var(--mut);padding:26px 8px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.stat{background:#f7fafc;border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat .v{font-size:26px;font-weight:800;color:var(--pri)}
+.stat .k{font-size:13px;color:var(--mut)}
+.bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px}
+.bar .nm{width:110px;flex:none}
+.bar .tr{flex:1;background:#e9eef2;border-radius:6px;height:18px;overflow:hidden}
+.bar .fl{height:100%;background:var(--pri)}
+.bar .vv{width:90px;flex:none;text-align:right;color:var(--mut)}
+details.sm>summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+details.sm table{width:100%;border-collapse:collapse;font-size:14px}
+details.sm td,details.sm th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.overlay{position:fixed;inset:0;background:rgba(10,20,30,.5);z-index:50;display:none;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:760px;max-height:94vh;max-height:94dvh;border-radius:18px 18px 0 0;display:flex;flex-direction:column}
+.sheet-h{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sheet-h b{font-size:17px}
+.sheet-b{padding:14px 16px;overflow:auto;-webkit-overflow-scrolling:touch;flex:1}
+.sheet-f{padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line);display:flex;gap:10px}
+.sheet-f .btn{flex:1}
+.sec{margin-bottom:16px}
+.hide{display:none!important}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:#1f2933;color:#fff;padding:10px 16px;border-radius:10px;z-index:200;font-size:14px;max-width:90vw;display:none}
+.toast.show{display:block}
+.sticky-sum{font-size:14px}
+a{color:var(--pri)}
+ul.t{padding-left:20px;margin:6px 0}
+ul.t li{margin:4px 0}
+code{background:#eef2f5;padding:1px 5px;border-radius:4px;font-size:13px}
+@media (min-width:900px){
+  .sheet{border-radius:18px;margin:auto}
+  .overlay{align-items:center}
+}
+@media (max-width:720px){
+  .top{position:static}
+  .sum{position:sticky;top:0;z-index:19}
+  main{padding:10px 10px calc(110px + env(safe-area-inset-bottom))}
+  .grid,.grid.g3{grid-template-columns:1fr}
+  .top h1{font-size:16px}
+  table.lst thead{display:none}
+  table.lst,table.lst tbody,table.lst tr,table.lst td{display:block;width:100%}
+  table.lst tr.rw{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;padding:6px 10px;background:#fff}
+  table.lst td{border:0;padding:4px 0;display:flex;gap:8px}
+  table.lst td::before{content:attr(data-l);flex:none;width:78px;color:var(--mut);font-size:13px;padding-top:2px}
+  table.lst td.act{padding-top:8px}
+  table.lst td.act::before{display:none}
+  .bar .nm{width:84px}.bar .vv{width:74px}
+  .fab{left:16px;right:16px;font-size:18px}
+  .chip{flex:0 1 auto}
+}
+@media print{.top,.fab,.sum{display:none}}
+</style>
+</head>
+<body class="locked">
+<header class="top"><div class="top-in">
+  <h1><span>结肠息肉送检随访决策卡</span><small id="saveState">载入中…</small></h1>
+  <div class="bk-row"><button class="btn bk-b" id="topExport">⬇ 导出备份</button><button class="btn bk-b" id="topImport">⬆ 导入备份</button><button class="btn bk-b" id="lockBtn">🔒 锁定</button><span class="bk-last" id="bkLast"></span></div>
+  <nav class="tabs" id="tabs">
+    <button class="tab" data-v="list">患者</button>
+    <button class="tab" data-v="stats">统计</button>
+    <button class="tab" data-v="backup">备份/说明</button>
+  </nav>
+</div></header>
+<div class="sum hide" id="sumBar"><div class="sum-in" id="sumIn"></div></div>
+<div id="banner"></div>
+<main id="main"></main>
+<input type="file" id="impFile" accept=".json,application/json" class="hide">
+<button class="btn pri fab hide" id="fab">＋ 添加息肉</button>
+<div class="overlay" id="ov"><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-h"><b id="ovTitle">编辑息肉</b><button class="btn sm" id="ovX">关闭</button></div><div class="sheet-b" id="ovBody"></div><div class="sheet-f"><button class="btn dng" id="ovDel">删除此条</button><button class="btn pri" id="ovOk">完成</button></div></div></div>
+<div class="overlay" id="dlg" style="z-index:120"><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-h"><b id="dlgT"></b></div><div class="sheet-b" id="dlgB"></div><div class="auth-err" id="dlgErr" style="padding:0 16px"></div><div class="sheet-f"><button class="btn" id="dlgNo">取消</button><button class="btn pri" id="dlgOk">确定</button></div></div></div>
+<div class="auth hide" id="auth"><div class="auth-box" id="authBox"></div></div>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+/* ================= 规则逻辑（移植自 Canvas，保持一致） ================= */
+var SEGMENTS=["回盲部","盲肠","升结肠","横结肠","降结肠","乙状结肠","直肠"];
+var PROXIMAL=["回盲部","盲肠","升结肠","横结肠"];
+var PARIS=["未选","0-Ip","0-Isp","0-Is","0-IIa","0-IIb","0-IIc","0-III","LST-G","LST-NG"];
+var NICE_OPTS=["未选","NICE 1","NICE 2","NICE 3"];
+var JNET_OPTS=["未选","JNET 1","JNET 2A","JNET 2B","JNET 3"];
+var PATH_OPTS=["未回填","增生性","管状腺瘤LGD","管状腺瘤HGD","绒毛/管状绒毛","SSL无异型","SSL伴异型","TSA","癌/T1","其他"];
+var MARGIN_OPTS=["未填","阴性","阳性","无法评估"];
+var FINAL_OPTS=["手改·单独送","手改·合并送","手改·不送检","手改·可不切除"];
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function pad2(n){return (n<10?"0":"")+n;}
+function todayStr(){var d=new Date();return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
+function nowIso(){return new Date().toISOString();}
+function emptyPolyp(segment){return {id:uid(),segment:segment,distanceCm:"",sizeMm:"",paris:"未选",nice:"未选",jnet:"未选",suspectSsl:false,mucusCap:false,erosion:false,confidence:"高置信度",copies:"1",representative:false,photoWl:true,photoNbi:true,adopt:"未定",finalMethod:"手改·单独送",pathClass:"未回填",margin:"未填",pathNote:""};}
+function emptyPatient(){var d=new Date(),t=nowIso();return {id:uid(),label:"患者 "+pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds()),examNo:"",examDate:todayStr(),lynch:false,sps:false,fap:false,priorAdvanced:false,ibdDysplasia:false,opticalOk:false,billing:"未知",tinyPolicy:"优先不送检",guideline:"中国2023",polyps:[],createdAt:t,updatedAt:t};}
+/* 注意：空字符串视为未填(NaN)，Canvas 原版 Number("")=0 会把未填大小当作 0 mm（见报告） */
+function parseNum(s){if(s===null||s===undefined)return NaN;var t=String(s).trim();if(t==="")return NaN;var n=Number(t);return isFinite(n)?n:NaN;}
+function expandCount(p){var n=Math.floor(parseNum(p.copies));return n>=1?n:1;}
+function totalPolypCount(ps){return ps.reduce(function(s,p){return s+expandCount(p);},0);}
+function segmentCount(ps,seg){return ps.filter(function(p){return p.segment===seg;}).reduce(function(s,p){return s+expandCount(p);},0);}
+function hasHighRisk(pt){return !!(pt.lynch||pt.sps||pt.fap||pt.priorAdvanced||pt.ibdDysplasia);}
+function highRiskLabel(pt){var a=[];if(pt.lynch)a.push("Lynch");if(pt.sps)a.push("SPS");if(pt.fap)a.push("FAP/AFAP");if(pt.priorAdvanced)a.push("既往进展期/T1");if(pt.ibdDysplasia)a.push("IBD异型");return a.length?a.join("、"):"无";}
+function isDepressed(p){return p.paris==="0-IIc"||p.paris==="0-III";}
+function isHighRiskOptics(p){return p.nice==="NICE 3"||p.jnet==="JNET 2B"||p.jnet==="JNET 3";}
+function proximalMucusSsl(p){return PROXIMAL.indexOf(p.segment)>=0&&!!p.mucusCap;}
+function photosOk(p){return !!(p.photoWl&&p.photoNbi);}
+function forcesSeparate(p,pt){
+  if(hasHighRisk(pt))return "高危背景："+highRiskLabel(pt);
+  var size=parseNum(p.sizeMm);
+  if(!isNaN(size)&&size>=10)return "≥10 mm";
+  if(isDepressed(p))return "凹陷型 Paris 0-IIc/III";
+  if(isHighRiskOptics(p))return "NICE 3 或 JNET 2B/3";
+  if(p.confidence==="低置信度")return "低置信度光学诊断";
+  if(p.erosion)return "糜烂/溃疡样表现";
+  if(p.suspectSsl)return "标记为可疑 SSL";
+  if(proximalMucusSsl(p))return "近端（含回盲部/盲肠）黏液帽，按可疑 SSL";
+  if(!photosOk(p))return "未同时留白光+NBI 图";
+  return null;
+}
+/* 系统建议（不含“手改”分支；手改只影响“最终送检方式”，不改变建议本身） */
+function suggestSpecimen(p,pt,total){
+  var force=forcesSeparate(p,pt);
+  if(force)return {action:"单独送检",reason:force,needsRepHint:false};
+  if(!pt.opticalOk){
+    if(p.representative&&total>=5)return {action:"代表性单独送",reason:"光学诊断未达标 + 已勾代表性",needsRepHint:false};
+    return {action:"单独送检",reason:"光学诊断未达标：不允许高置信度不送/合并",needsRepHint:false};
+  }
+  var size=parseNum(p.sizeMm);
+  var distal=p.segment==="乙状结肠"||p.segment==="直肠";
+  var multi=total>=5;
+  if(p.representative&&multi)return {action:"代表性单独送",reason:total>=10?"全肠 ≥10 枚且本条勾选代表性：代表性单独送（其余仍可简化）":"全肠 ≥5 枚且本条勾选代表性：本段代表性单独送",needsRepHint:false};
+  if(!isNaN(size)&&size<=5&&distal&&p.nice==="NICE 1"&&p.confidence==="高置信度"&&!isDepressed(p))
+    return {action:"可不切除",reason:"直乙 ≤5 mm、NICE 1、高置信度（diagnose-and-leave）",needsRepHint:multi};
+  if(!isNaN(size)&&size<=5&&p.confidence==="高置信度"){
+    if(pt.tinyPolicy==="同段合并留档")return {action:"同段合并送",reason:"≤5 mm 高置信度：按策略同段合并留档",needsRepHint:multi};
+    return {action:"不送检",reason:"≤5 mm 高置信度：优先不送检（resect-and-discard）",needsRepHint:multi};
+  }
+  if(!isNaN(size)&&size>=6&&size<=9&&p.confidence==="高置信度"){
+    if(pt.billing==="按蜡块")return {action:"单独送检",reason:"6–9 mm 高置信度：按蜡块计费时合并不一定省，默认单独送",needsRepHint:multi};
+    if(pt.billing==="未知")return {action:"同段合并送",reason:"6–9 mm 高置信度：计费未知时暂按合并；请尽快确认按瓶/按蜡块",needsRepHint:multi};
+    return {action:"同段合并送",reason:"6–9 mm 高置信度、按瓶计费：同段合并送",needsRepHint:multi};
+  }
+  if(isNaN(size)||p.nice==="未选"||p.paris==="未选")return {action:"单独送检",reason:"大小/Paris/NICE 未填全，默认单独送",needsRepHint:multi};
+  return {action:"单独送检",reason:"未命中简化条件，默认单独送",needsRepHint:multi};
+}
+/* 与 Canvas decideSpecimen 一致的入口：手改 → “手改·…”；否则 = 系统建议 */
+function decideSpecimen(p,pt,total){
+  var s=suggestSpecimen(p,pt,total);
+  if(p.adopt==="手改"){
+    var fin=FINAL_OPTS.indexOf(p.finalMethod)>=0?p.finalMethod:"手改·单独送";
+    return {action:fin,reason:"已手改（系统建议："+s.action+"，依据："+s.reason+"）",needsRepHint:false,suggest:s};
+  }
+  return {action:s.action,reason:s.reason,needsRepHint:s.needsRepHint,suggest:s};
+}
+function finalCategory(p,d){
+  if(p.adopt==="手改"){var f=(FINAL_OPTS.indexOf(p.finalMethod)>=0?p.finalMethod:"手改·单独送").replace("手改·","");
+    return f==="单独送"?"单独送检":f==="合并送"?"同段合并送":f;}
+  return d.suggest.action;
+}
+function pathRiskOf(p){
+  if(p.margin==="阳性"||p.margin==="无法评估")return "切缘阳性/无法评估";
+  if(p.pathClass==="癌/T1")return "癌/T1";
+  if(p.pathClass==="管状腺瘤HGD"||p.pathClass==="绒毛/管状绒毛"||p.pathClass==="SSL伴异型"||p.pathClass==="TSA")return "高级别/绒毛/SSL伴异型";
+  if(p.pathClass==="管状腺瘤LGD")return "腺瘤LGD";
+  if(p.pathClass==="SSL无异型")return "SSL无异型";
+  if(p.pathClass==="增生性")return "增生性";
+  var note=p.pathNote||"";
+  if(/癌|T1|浸润/.test(note))return "癌/T1";
+  if(/高级别|HGD|绒毛|伴异型/.test(note))return "高级别/绒毛/SSL伴异型";
+  return null;
+}
+function worstPath(ps){
+  var order=["癌/T1","切缘阳性/无法评估","高级别/绒毛/SSL伴异型","腺瘤LGD","SSL无异型","增生性"];
+  var best=null,bi=999;
+  ps.forEach(function(p){var r=pathRiskOf(p);if(!r)return;var i=order.indexOf(r);if(i>=0&&i<bi){bi=i;best=r;}});
+  return best;
+}
+function adenomaCountProxy(ps){
+  var total=0,maxSize=0,ge10=false,any69=false,adenomaLike=0,sslSmall=0,sslBig=false;
+  ps.forEach(function(p){
+    var size=parseNum(p.sizeMm),n=expandCount(p);
+    if(isNaN(size))return;
+    total+=n;
+    if(size>maxSize)maxSize=size;
+    if(size>=10)ge10=true;
+    if(size>=6&&size<=9)any69=true;
+    var pr=pathRiskOf(p);
+    if(pr==="腺瘤LGD"||pr==="高级别/绒毛/SSL伴异型"||pr==="癌/T1"||p.pathClass==="未回填"){
+      if(p.pathClass==="未回填"){
+        if(p.nice==="NICE 2"||p.jnet==="JNET 2A"||p.jnet==="JNET 2B")adenomaLike+=n;
+        else if(p.nice!=="NICE 1")adenomaLike+=n;
+      }else if(pr==="腺瘤LGD"||pr==="高级别/绒毛/SSL伴异型"||pr==="癌/T1"){adenomaLike+=n;}
+    }
+    if(pr==="SSL无异型"||p.pathClass==="SSL无异型"){if(size<10)sslSmall+=n;else sslBig=true;}
+    if(p.pathClass==="SSL伴异型"||p.pathClass==="TSA")sslBig=true;
+    if(size>=10&&(p.suspectSsl||proximalMucusSsl(p)))sslBig=true;
+  });
+  return {total:total,maxSize:maxSize,ge10:ge10,any69:any69,adenomaLike:adenomaLike,sslSmall:sslSmall,sslBig:sslBig};
+}
+function followUp(ps,pt){
+  if(hasHighRisk(pt))return {interval:"按专项监测（非本简化卡）",basis:"高危："+highRiskLabel(pt),pathOverride:null,tone:"danger"};
+  var worst=worstPath(ps);
+  if(worst==="癌/T1")return {interval:"T1 路径：多学科评估追加手术 vs 内镜随访",basis:"病理分类为癌/T1",pathOverride:worst,tone:"danger"};
+  if(worst==="切缘阳性/无法评估")return {interval:"缩短复查 / 评估再处理（切缘问题）",basis:"切缘阳性或无法评估",pathOverride:worst,tone:"danger"};
+  var s=adenomaCountProxy(ps);
+  if(s.total===0)return {interval:"待录入息肉",basis:"尚无有效大小",pathOverride:null,tone:"warning"};
+  var pathHi=worst==="高级别/绒毛/SSL伴异型";
+  if(pt.guideline==="ESGE2020"){
+    if(pathHi||s.ge10||s.adenomaLike>=5||s.sslBig)return {interval:"3 年",basis:"ESGE 高危：≥10 mm / HGD·绒毛 / ≥5 枚腺瘤 / SSL≥10 mm或伴异型",pathOverride:pathHi?worst:null,tone:pathHi?"warning":"success"};
+    return {interval:"回常规筛查（无组织筛查时约 10 年肠镜）",basis:"ESGE 低危：1–4 枚 <10 mm 且无高危病理",pathOverride:null,tone:"success"};
+  }
+  if(pt.guideline==="USMSTF2020"){
+    if(pathHi||s.ge10||s.sslBig)return {interval:"约 3 年",basis:"USMSTF：进展期腺瘤/SSL 或 ≥10 mm",pathOverride:pathHi?worst:null,tone:pathHi?"warning":"success"};
+    if(s.adenomaLike>=3&&s.adenomaLike<=4)return {interval:"3–5 年",basis:"USMSTF：3–4 枚 <10 mm 管状腺瘤",pathOverride:null,tone:"success"};
+    if(s.adenomaLike>=5)return {interval:"约 3 年（枚数增多时偏紧；≥10 枚需评估息肉病）",basis:"USMSTF：较多腺瘤",pathOverride:null,tone:"warning"};
+    return {interval:"7–10 年",basis:"USMSTF：1–2 枚 <10 mm 管状腺瘤近似",pathOverride:null,tone:"success"};
+  }
+  if(pathHi||s.ge10||s.sslBig)return {interval:"1–2 年",basis:"中国2023：>10 mm / 绒毛或高级别 / SSL≥10 mm或伴异型 / TSA",pathOverride:pathHi?worst:null,tone:"warning"};
+  if(s.total>10||s.adenomaLike>10)return {interval:"1 年",basis:"中国2023：>10 枚腺瘤",pathOverride:null,tone:"warning"};
+  if(s.adenomaLike>=3||s.total>=3||s.any69)return {interval:"1–2 年",basis:"中国2023：3–10 枚管状腺瘤档（或存在 6–9 mm 时偏紧）",pathOverride:null,tone:"success"};
+  if(s.sslSmall>=1&&s.adenomaLike===0)return {interval:"2–3 年",basis:"中国2023：<10 mm 无异型 SSL",pathOverride:null,tone:"success"};
+  return {interval:"1–3 年",basis:"中国2023：1–2 枚 <10 mm 管状腺瘤近似（数目+大小；病理未改写）",pathOverride:(worst&&worst!=="增生性")?worst:null,tone:"success"};
+}
+function segmentsNeedingRep(pt){
+  var total=totalPolypCount(pt.polyps);if(total<5)return [];
+  var segs=[];pt.polyps.forEach(function(p){if(segs.indexOf(p.segment)<0)segs.push(p.segment);});
+  return segs.filter(function(seg){return !pt.polyps.some(function(x){return x.segment===seg&&x.representative;});});
+}
+window.PolypLogic={forcesSeparate:forcesSeparate,suggestSpecimen:suggestSpecimen,decideSpecimen:decideSpecimen,followUp:followUp,emptyPatient:emptyPatient,emptyPolyp:emptyPolyp,totalPolypCount:totalPolypCount,segmentsNeedingRep:segmentsNeedingRep};
+
+/* ================= 加密持久化：IndexedDB(加密记录) + localStorage 镜像(同样加密) ================= */
+var DB2="polypCardSecure",LS_ENC="polypCard.enc.v2",LS_AUTH="polypCard.auth.v2";
+var LEGACY_DB="polypCardDB",LEGACY_LS="polypCard.patients.v1";
+var LS_BK="polypCard.lastBackup",LS_DEV="polypCard.device";
+var KDF_ITER=300000;
+var IDLE_MS=15*60*1000;
+var idb=null,backendName="localStorage",cache=new Map(),encCache=new Map(),authRec=null,sessKey=null,sessUser="";
+var TE=new TextEncoder(),TD=new TextDecoder();
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){return false;}}
+function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
+function b64(buf){var a=new Uint8Array(buf),s="";for(var i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s);}
+function unb64(s){var bin=atob(s),a=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a;}
+function cryptoOk(){return !!(window.crypto&&crypto.subtle&&crypto.getRandomValues);}
+async function deriveKey(pw,salt,iter){
+  var km=await crypto.subtle.importKey("raw",TE.encode(pw),"PBKDF2",false,["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2",hash:"SHA-256",salt:salt,iterations:iter},km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+}
+async function aesEnc(key,text,aad){var iv=crypto.getRandomValues(new Uint8Array(12));var ct=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv,additionalData:TE.encode(aad||"")},key,TE.encode(text));return {iv:b64(iv),ct:b64(ct)};}
+async function aesDec(key,rec,aad){var pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(rec.iv),additionalData:TE.encode(aad||"")},key,unb64(rec.ct));return TD.decode(pt);}
+
+function normPolyp(p){var d=emptyPolyp("回盲部");var o={};for(var k in d)o[k]=(p&&p[k]!==undefined&&p[k]!==null)?p[k]:d[k];
+  if(typeof o.id!=="string"||!o.id)o.id=uid();
+  ["suspectSsl","mucusCap","erosion","representative","photoWl","photoNbi"].forEach(function(k){o[k]=!!o[k];});
+  ["distanceCm","sizeMm","copies","pathNote"].forEach(function(k){o[k]=String(o[k]);});
+  return o;}
+function normPatient(p){var d=emptyPatient();var o={};for(var k in d)o[k]=(p&&p[k]!==undefined&&p[k]!==null)?p[k]:d[k];
+  if(typeof o.id!=="string"||!o.id)o.id=uid();
+  ["lynch","sps","fap","priorAdvanced","ibdDysplasia","opticalOk"].forEach(function(k){o[k]=!!o[k];});
+  o.label=String(o.label);o.examNo=String(o.examNo);o.examDate=String(o.examDate||"");
+  o.polyps=Array.isArray(p&&p.polyps)?p.polyps.map(normPolyp):[];
+  if(isNaN(Date.parse(o.createdAt)))o.createdAt=nowIso();
+  if(isNaN(Date.parse(o.updatedAt)))o.updatedAt=o.createdAt;
+  return o;}
+function newer(a,b){return Date.parse(a.updatedAt)>Date.parse(b.updatedAt);}
+
+/* --- IndexedDB 基础 --- */
+function openDB2(){return new Promise(function(res,rej){
+  if(!window.indexedDB)return rej(new Error("no indexedDB"));
+  var r;try{r=indexedDB.open(DB2,1);}catch(e){return rej(e);}
+  r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains("enc"))d.createObjectStore("enc",{keyPath:"id"});if(!d.objectStoreNames.contains("meta"))d.createObjectStore("meta",{keyPath:"k"});};
+  r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};
+  setTimeout(function(){rej(new Error("idb timeout"));},4000);
+});}
+function idbGetAll(store){return new Promise(function(res,rej){var q=idb.transaction(store,"readonly").objectStore(store).getAll();q.onsuccess=function(){res(q.result||[]);};q.onerror=function(){rej(q.error);};});}
+function idbTx(stores,fn){return new Promise(function(res,rej){var tx=idb.transaction(stores,"readwrite");fn(tx);tx.oncomplete=function(){res();};tx.onerror=function(){rej(tx.error);};tx.onabort=function(){rej(tx.error);};});}
+function readLsAuth(){try{var a=JSON.parse(lsGet(LS_AUTH)||"null");return a&&a.salt&&a.check?a:null;}catch(e){return null;}}
+function readLsEnc(){try{var a=JSON.parse(lsGet(LS_ENC)||"[]");return Array.isArray(a)?a:[];}catch(e){return [];}}
+function lsWriteEnc(){return lsSet(LS_ENC,JSON.stringify(Array.from(encCache.values())));}
+
+async function storageOpen(){
+  var a=null;
+  try{idb=await openDB2();backendName="IndexedDB（加密）+ localStorage 加密镜像";var m=await idbGetAll("meta");a=m.filter(function(x){return x.k==="auth";})[0]||null;}
+  catch(e){idb=null;backendName="localStorage 加密镜像（IndexedDB 不可用）";}
+  var la=readLsAuth();
+  authRec=a||la||null;
+  if(authRec&&!a&&idb){try{await idbTx(["meta"],function(tx){tx.objectStore("meta").put(authRec);});}catch(e){}}
+  if(authRec&&!la)lsSet(LS_AUTH,JSON.stringify(authRec));
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+}
+function hasAuth(){return !!authRec;}
+
+/* --- 读取旧版明文数据（迁移用） --- */
+async function readLegacy(){
+  var map=new Map();
+  try{var a=JSON.parse(lsGet(LEGACY_LS)||"[]");if(Array.isArray(a))a.forEach(function(p){if(p&&typeof p.id==="string"){var n=normPatient(p);map.set(n.id,n);}});}catch(e){}
+  try{
+    if(window.indexedDB){
+      var d=await new Promise(function(res,rej){var r=indexedDB.open(LEGACY_DB);r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};r.onupgradeneeded=function(){};setTimeout(function(){rej(new Error("t"));},3000);});
+      if(d.objectStoreNames.contains("patients")){
+        var all=await new Promise(function(res,rej){var q=d.transaction("patients","readonly").objectStore("patients").getAll();q.onsuccess=function(){res(q.result||[]);};q.onerror=function(){rej(q.error);};});
+        all.forEach(function(p){if(p&&typeof p.id==="string"){var n=normPatient(p),c=map.get(n.id);if(!c||newer(n,c))map.set(n.id,n);}});
+      }
+      d.close();
+    }
+  }catch(e){}
+  return Array.from(map.values());
+}
+function wipeLegacy(){
+  lsDel(LEGACY_LS);
+  try{if(window.indexedDB)indexedDB.deleteDatabase(LEGACY_DB);}catch(e){}
+}
+
+/* --- 写入队列（串行，避免异步加密乱序覆盖） --- */
+var saveQueue=Promise.resolve();
+function enqueue(fn){var p=saveQueue.then(fn,fn);saveQueue=p.then(function(){},function(){});return p;}
+async function encRecord(p){var r=await aesEnc(sessKey,JSON.stringify(p),p.id);return {id:p.id,iv:r.iv,ct:r.ct};}
+function dbPut(p){cache.set(p.id,p);return enqueue(async function(){
+  var rec=await encRecord(p);encCache.set(p.id,rec);var ok=lsWriteEnc();
+  if(idb){try{await idbTx(["enc"],function(tx){tx.objectStore("enc").put(rec);});return true;}catch(e){return ok;}}
+  return ok;});}
+function dbPutMany(arr){arr.forEach(function(p){cache.set(p.id,p);});return enqueue(async function(){
+  var recs=[];for(var i=0;i<arr.length;i++)recs.push(await encRecord(arr[i]));
+  recs.forEach(function(r){encCache.set(r.id,r);});var ok=lsWriteEnc();
+  if(idb){try{await idbTx(["enc"],function(tx){recs.forEach(function(r){tx.objectStore("enc").put(r);});});return true;}catch(e){return ok;}}
+  return ok;});}
+function dbDelete(id){cache.delete(id);return enqueue(async function(){encCache.delete(id);lsWriteEnc();
+  if(idb){try{await idbTx(["enc"],function(tx){tx.objectStore("enc").delete(id);});}catch(e){}}});}
+
+/* --- 账户 --- */
+async function makeAuth(user,pw){
+  var salt=crypto.getRandomValues(new Uint8Array(16));
+  var key=await deriveKey(pw,salt,KDF_ITER);
+  var chk=await aesEnc(key,"polyp-card-ok","check");
+  return {key:key,auth:{k:"auth",v:2,user:user,salt:b64(salt),iter:KDF_ITER,check:chk}};
+}
+async function verifyPw(pw){
+  try{var key=await deriveKey(pw,unb64(authRec.salt),authRec.iter);var t=await aesDec(key,authRec.check,"check");return t==="polyp-card-ok"?key:null;}catch(e){return null;}
+}
+/* 首次设置：迁移旧版明文数据并加密 */
+async function createAccount(user,pw){
+  var m=await makeAuth(user,pw);
+  var legacy=await readLegacy();
+  var recs=[];
+  for(var i=0;i<legacy.length;i++){recs.push(await aesEnc(m.key,JSON.stringify(legacy[i]),legacy[i].id).then(function(r,idx){return r;}));}
+  var enc=legacy.map(function(p,i){return {id:p.id,iv:recs[i].iv,ct:recs[i].ct};});
+  /* 先写入加密数据并校验，再清除旧明文 */
+  if(idb){await idbTx(["enc","meta"],function(tx){tx.objectStore("enc").clear();enc.forEach(function(r){tx.objectStore("enc").put(r);});tx.objectStore("meta").put(m.auth);});}
+  encCache=new Map();enc.forEach(function(r){encCache.set(r.id,r);});
+  if(!lsWriteEnc()||!lsSet(LS_AUTH,JSON.stringify(m.auth))){if(!idb)throw new Error("本机存储不可用，无法保存。");}
+  authRec=m.auth;sessKey=m.key;sessUser=user;
+  cache=new Map();legacy.forEach(function(p){cache.set(p.id,p);});
+  wipeLegacy();
+  return legacy.length;
+}
+async function loginAccount(user,pw){
+  if(!authRec||user!==authRec.user)return {ok:false};
+  var key=await verifyPw(pw);if(!key)return {ok:false};
+  sessKey=key;sessUser=authRec.user;cache=new Map();encCache=new Map();
+  var recs=[];
+  if(idb){try{recs=await idbGetAll("enc");}catch(e){recs=[];}}
+  var la=readLsAuth();
+  if(la&&la.salt===authRec.salt){var byId={};recs.forEach(function(r){byId[r.id]=true;});readLsEnc().forEach(function(r){if(r&&r.id&&!byId[r.id])recs.push(r);});}
+  var bad=0;
+  for(var i=0;i<recs.length;i++){
+    try{var p=normPatient(JSON.parse(await aesDec(key,recs[i],recs[i].id)));encCache.set(recs[i].id,{id:recs[i].id,iv:recs[i].iv,ct:recs[i].ct});var c=cache.get(p.id);if(!c||newer(p,c))cache.set(p.id,p);}
+    catch(e){bad++;}
+  }
+  return {ok:true,bad:bad};
+}
+async function changePassword(oldPw,newPw){
+  var okKey=await verifyPw(oldPw);if(!okKey)return "旧密码不正确";
+  return enqueue(async function(){
+    var m=await makeAuth(authRec.user,newPw);
+    var pts=Array.from(cache.values());var recs=[];
+    for(var i=0;i<pts.length;i++){var r=await aesEnc(m.key,JSON.stringify(pts[i]),pts[i].id);recs.push({id:pts[i].id,iv:r.iv,ct:r.ct});}
+    if(idb){await idbTx(["enc","meta"],function(tx){tx.objectStore("enc").clear();recs.forEach(function(r){tx.objectStore("enc").put(r);});tx.objectStore("meta").put(m.auth);});}
+    encCache=new Map();recs.forEach(function(r){encCache.set(r.id,r);});
+    lsWriteEnc();lsSet(LS_AUTH,JSON.stringify(m.auth));
+    authRec=m.auth;sessKey=m.key;return null;
+  });
+}
+function lockMemory(){sessKey=null;cache=new Map();encCache=new Map();}
+async function clearAllLocal(){
+  try{if(idb){idb.close();idb=null;}}catch(e){}
+  await new Promise(function(res){try{var r=indexedDB.deleteDatabase(DB2);r.onsuccess=r.onerror=r.onblocked=function(){res();};setTimeout(res,2000);}catch(e){res();}});
+  [LS_ENC,LS_AUTH,LEGACY_LS,LS_BK].forEach(lsDel);
+  try{indexedDB.deleteDatabase(LEGACY_DB);}catch(e){}
+  authRec=null;lockMemory();
+}
+
+/* ================= UI ================= */
+var $=function(s){return document.querySelector(s);};
+function esc(s){return String(s===undefined||s===null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function fmtDT(iso){var d=new Date(iso);if(isNaN(d))return "—";return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());}
+function stamp(){var d=new Date();return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+"-"+pad2(d.getHours())+pad2(d.getMinutes());}
+var toastT;function toast(m){var t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},3200);}
+var S={view:"list",cur:null,segSel:"回盲部",editId:null,q:"",from:"",to:""};
+var saveT=null,saveMsg="";
+
+function setSaveState(t){saveMsg=t;$("#saveState").textContent=t;}
+function saveSoon(){if(!S.cur)return;setSaveState("保存中…");clearTimeout(saveT);saveT=setTimeout(flushSave,250);}
+function flushSave(){
+  clearTimeout(saveT);saveT=null;if(!S.cur)return Promise.resolve();
+  S.cur.updatedAt=nowIso();
+  var snap=JSON.parse(JSON.stringify(S.cur));
+  return dbPut(snap).then(function(ok){var d=new Date();setSaveState((ok?"已自动保存 ":"⚠ 保存失败 ")+pad2(d.getHours())+":"+pad2(d.getMinutes())+":"+pad2(d.getSeconds()));renderBanner();});
+}
+window.addEventListener("pagehide",function(){if(saveT)flushSave();});
+document.addEventListener("visibilitychange",function(){if(document.hidden&&saveT)flushSave();});
+
+/* ---- 控件生成 ---- */
+function chips(k,opts,val,small){return '<div class="chips">'+opts.map(function(o){return '<button type="button" class="chip'+(small?' sm':'')+(o===val?' on':'')+'" data-k="'+k+'" data-v="'+esc(o)+'">'+esc(o)+'</button>';}).join("")+'</div>';}
+function sw(k,label,val){return '<label class="sw"><input type="checkbox" data-k="'+k+'"'+(val?" checked":"")+'><span>'+esc(label)+'</span></label>';}
+function inp(k,label,val,o){o=o||{};return '<div class="fld"><label class="lb">'+esc(label)+'</label><input type="'+(o.type||"text")+'" data-k="'+k+'" value="'+esc(val)+'"'+(o.im?' inputmode="'+o.im+'"':"")+(o.ph?' placeholder="'+esc(o.ph)+'"':"")+' autocomplete="off"></div>';}
+function grp(label,html){return '<div class="fld"><span class="lb">'+esc(label)+'</span>'+html+'</div>';}
+/* 绑定：容器内 data-k 控件 → obj[k]。onChange(key,isChip) */
+function bind(root,getObj,onChange){
+  root.addEventListener("click",function(e){
+    var b=e.target.closest(".chip[data-k]");if(!b||!root.contains(b))return;
+    var k=b.getAttribute("data-k"),v=b.getAttribute("data-v");var o=getObj(b);if(!o)return;
+    o[k]=v;Array.prototype.forEach.call(b.parentNode.children,function(c){c.classList.toggle("on",c===b);});
+    onChange(k,true,b);
+  });
+  root.addEventListener("input",function(e){
+    var t=e.target;if(!t.matches||!t.matches("input[data-k],select[data-k],textarea[data-k]"))return;
+    var o=getObj(t);if(!o)return;var k=t.getAttribute("data-k");
+    o[k]=t.type==="checkbox"?t.checked:t.value;onChange(k,false,t);
+  });
+}
+
+/* ---- 提示条 / 顶部 ---- */
+function lastBackup(){return lsGet(LS_BK)||"";}
+function renderBanner(){
+  var el=$("#banner");var n=cache.size;var lb=lastBackup();
+  $("#bkLast").textContent=lb?"上次备份："+fmtDT(lb):"尚未备份";
+  var html="";
+  if(n>0){
+    var days=lb?(Date.now()-Date.parse(lb))/864e5:Infinity;
+    if(days>7)html='<div class="note n-warn"><b>⚠ 备份提醒</b>'+(lb?"已超过 "+Math.floor(days)+" 天未备份（上次 "+fmtDT(lb)+"）。":"还没有备份过。")+'数据只在本浏览器里，请点上方「导出备份」保存一份 JSON 文件。</div>';
+  }
+  el.innerHTML=html;
+}
+function setView(v){
+  if(S.view==="edit"&&v!=="edit"&&saveT){flushSave();}
+  S.view=v;if(v!=="edit"){S.cur=null;S.editId=null;closeSheet();}
+  render();window.scrollTo(0,0);
+}
+function render(){
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"),function(t){t.classList.toggle("on",t.getAttribute("data-v")===(S.view==="edit"?"list":S.view));});
+  $("#fab").classList.toggle("hide",S.view!=="edit");
+  $("#sumBar").classList.toggle("hide",S.view!=="edit");
+  if(S.view==="list")renderList();else if(S.view==="stats")renderStats();else if(S.view==="backup")renderBackup();else if(S.view==="edit")renderEdit();
+  renderBanner();
+}
+
+/* ---- 患者列表 ---- */
+function patientFU(p){return followUp(p.polyps,p);}
+function renderList(){
+  $("#main").innerHTML=
+   '<div class="note n-info"><b>🔒 隐私</b>请勿录入身份证号、姓名全称（用床号/首字母/检查号即可）。网页虽放在公开网址，但数据<b>只存在本设备浏览器且已加密</b>，不上传服务器；换浏览器/清缓存会丢，请定期导出备份。</div>'+
+   '<div class="card"><div class="row sp"><h2 style="margin:0">患者列表 <span id="cnt" style="font-weight:400;color:var(--mut);font-size:14px"></span></h2><button class="btn pri" id="newPt">＋ 新建患者卡</button></div>'+
+   '<div class="grid" style="margin-top:12px"><div class="fld"><label class="lb">搜索（标识/检查号）</label><input type="search" id="fq" value="'+esc(S.q)+'" placeholder="输入关键词"></div>'+
+   '<div class="fld"><label class="lb">检查日期 从</label><input type="date" id="ff" value="'+esc(S.from)+'"></div>'+
+   '<div class="fld"><label class="lb">检查日期 至</label><input type="date" id="ft" value="'+esc(S.to)+'"></div></div></div>'+
+   '<div class="card" id="plist"></div>';
+  $("#newPt").onclick=newPatient;
+  var upd=function(){S.q=$("#fq").value;S.from=$("#ff").value;S.to=$("#ft").value;renderListBody();};
+  ["fq","ff","ft"].forEach(function(id){$("#"+id).addEventListener("input",upd);});
+  renderListBody();
+}
+function renderListBody(){
+  var all=Array.from(cache.values());var q=S.q.trim().toLowerCase();
+  var rows=all.filter(function(p){
+    if(q&&(p.label+" "+p.examNo).toLowerCase().indexOf(q)<0)return false;
+    if(S.from&&(p.examDate||"")<S.from)return false;
+    if(S.to&&(p.examDate||"")>S.to)return false;return true;
+  }).sort(function(a,b){return (b.examDate||"").localeCompare(a.examDate||"")||Date.parse(b.updatedAt)-Date.parse(a.updatedAt);});
+  $("#cnt").textContent="（"+rows.length+" / "+all.length+"）";
+  var box=$("#plist");
+  if(!rows.length){box.innerHTML='<div class="empty">'+(all.length?"没有符合条件的患者。":"还没有患者。点右上「＋ 新建患者卡」开始录入。")+'</div>';return;}
+  box.innerHTML='<table class="lst"><thead><tr><th>检查日期</th><th>检查号</th><th>标识</th><th>息肉数</th><th>随访建议</th><th>创建</th><th>修改</th><th></th></tr></thead><tbody>'+
+   rows.map(function(p){var fu=patientFU(p);
+    return '<tr class="rw" data-id="'+esc(p.id)+'"><td data-l="检查日期">'+esc(p.examDate||"—")+'</td><td data-l="检查号">'+esc(p.examNo||"—")+'</td><td data-l="标识"><b>'+esc(p.label||"未命名")+'</b>'+(hasHighRisk(p)?' <span class="badge b-bad">高危</span>':'')+'</td><td data-l="息肉数">'+totalPolypCount(p.polyps)+' 枚（'+p.polyps.length+' 条）</td><td data-l="随访建议">'+esc(fu.interval)+'</td><td data-l="创建">'+fmtDT(p.createdAt)+'</td><td data-l="修改">'+fmtDT(p.updatedAt)+'</td><td class="act"><div class="row"><button class="btn sm pri" data-a="open">打开</button><button class="btn sm dng" data-a="del">删除</button></div></td></tr>';}).join("")+'</tbody></table>';
+  box.onclick=function(e){var b=e.target.closest("button[data-a]");var tr=e.target.closest("tr.rw");if(!tr)return;var id=tr.getAttribute("data-id");
+    if(b&&b.getAttribute("data-a")==="del"){var p=cache.get(id);
+      if(confirm("确认删除患者「"+(p.label||"未命名")+"」及其 "+p.polyps.length+" 条息肉记录？\n删除后不可恢复，建议先导出备份。")){dbDelete(id).then(function(){toast("已删除");renderListBody();renderBanner();});}
+    }else openPatient(id);};
+}
+function openPatient(id){var p=cache.get(id);if(!p)return;S.cur=JSON.parse(JSON.stringify(p));S.view="edit";S.editId=null;S.segSel="回盲部";setSaveState("已打开 · 修改将自动保存");render();window.scrollTo(0,0);}
+function newPatient(){S.cur=emptyPatient();S.view="edit";S.editId=null;S.segSel="回盲部";setSaveState("新卡 · 录入后自动保存");render();window.scrollTo(0,0);}
+
+/* ---- 患者编辑页 ---- */
+function renderEdit(){
+  var c=S.cur;
+  $("#main").innerHTML=
+  '<div class="row sp" style="margin-bottom:10px"><button class="btn" id="back">← 返回列表</button><button class="btn dng sm" id="clearPolyps">清空本卡息肉</button></div>'+
+  '<div class="card" id="fBasic"><h2>基本信息</h2><div class="grid">'+
+    inp("examDate","检查日期",c.examDate,{type:"date"})+inp("examNo","检查号",c.examNo,{ph:"肠镜号/病理申请号"})+inp("label","患者标识（勿填身份证/全名）",c.label,{ph:"床号/首字母"})+
+  '</div></div>'+
+  '<div class="card" id="fRisk"><h2>高危分项与策略</h2><span class="lb">高危分项（任一开启即退出简化路径）</span><div class="grid g3">'+
+    sw("lynch","Lynch",c.lynch)+sw("sps","SPS",c.sps)+sw("fap","FAP/AFAP",c.fap)+sw("priorAdvanced","既往进展期腺瘤/T1",c.priorAdvanced)+sw("ibdDysplasia","IBD 相关异型增生",c.ibdDysplasia)+sw("opticalOk","光学诊断已达标（培训/抽检）",c.opticalOk)+
+  '</div><div class="grid" style="margin-top:14px">'+grp("病理计费",chips("billing",["未知","按瓶","按蜡块"],c.billing))+grp("≤5 mm 策略",chips("tinyPolicy",["优先不送检","同段合并留档"],c.tinyPolicy))+grp("随访指南",chips("guideline",["中国2023","ESGE2020","USMSTF2020"],c.guideline))+'</div><div id="warns" style="margin-top:12px"></div></div>'+
+  '<div class="card"><h2>添加息肉</h2><span class="lb">先选肠段（含回盲部/盲肠，均视为近端），再点「添加息肉」</span><div id="segChips">'+chips("seg",SEGMENTS,S.segSel)+'</div>'+
+    '<div class="row" style="margin-top:12px"><button class="btn pri" id="addP">＋ 在「<span id="segName">'+esc(S.segSel)+'</span>」添加息肉</button><span id="segCnt" style="color:var(--mut);font-size:14px"></span></div>'+
+    '<div class="sub">同特征多枚：把「同特征枚数」调大于 1。近端可疑 SSL：回盲部/盲肠/升/横结肠 + 黏液帽或「可疑 SSL」。</div></div>'+
+  '<div class="card"><h2>息肉列表与送检建议</h2><div id="plistE"></div></div>'+
+  '<div class="card"><h2>随访建议（实时）</h2><div id="fu"></div></div>'+
+  '<div class="card"><details class="sm"><summary>规则摘要</summary><table><tr><th>条件</th><th>动作</th></tr>'+
+  '<tr><td>任一高危分项，或光学未达标</td><td>倾向/必须单独送；未达标禁止不送与合并</td></tr>'+
+  '<tr><td>≥10 mm；0-IIc/III；NICE3 或 JNET2B/3；低置信；糜烂；可疑SSL；近端黏液帽；未留双图</td><td>单独送检</td></tr>'+
+  '<tr><td>直乙 ≤5 mm、NICE 1、高置信（且光学达标）</td><td>可不切除</td></tr>'+
+  '<tr><td>≤5 mm 高置信</td><td>按 ≤5 mm 策略：不送检 或 同段合并留档</td></tr>'+
+  '<tr><td>6–9 mm 高置信</td><td>按瓶→合并；按蜡块→单独；未知→暂合并并提示</td></tr>'+
+  '<tr><td>全肠 ≥5 / ≥10 枚</td><td>仅「段内代表性」=是 → 代表性单独送；其余仍可简化；缺代表性则警告</td></tr></table>'+
+  '<p style="font-size:13px;color:var(--mut)">草案工具，非正式病历/医嘱；病理分类、切缘与备注可改写随访间隔；分块大病变请自行按 3–6 月复查切缘区（本卡未自动识别 piecemeal）。</p></details></div>';
+  $("#back").onclick=function(){setView("list");};
+  $("#clearPolyps").onclick=function(){if(S.cur.polyps.length&&confirm("确认清空本卡全部 "+S.cur.polyps.length+" 条息肉？"))
+    {S.cur.polyps=[];saveSoon();refreshResults();}};
+  $("#addP").onclick=addPolyp;
+  bindPolypList();
+  refreshResults();
+}
+function bindPolypList(){
+  var box=$("#plistE");
+  box.onclick=function(e){
+    var ed=e.target.closest("button[data-edit]");if(ed){openSheet(ed.getAttribute("data-edit"));return;}
+    var ch=e.target.closest(".chip[data-pid]");if(ch){var p=S.cur.polyps.filter(function(x){return x.id===ch.getAttribute("data-pid");})[0];if(!p)return;
+      p[ch.getAttribute("data-k")]=ch.getAttribute("data-v");saveSoon();refreshResults();}
+  };
+}
+function addPolyp(){var p=emptyPolyp(S.segSel);S.cur.polyps.push(p);saveSoon();refreshResults();openSheet(p.id);}
+function badgeCls(a){return a==="单独送检"?"b-sep":(a==="不送检"||a==="可不切除")?"b-skip":a==="同段合并送"?"b-merge":a==="代表性单独送"?"b-rep":"b-man";}
+function cardCls(a){return a==="单独送检"?"t-sep":(a==="不送检"||a==="可不切除")?"t-skip":a==="同段合并送"?"t-merge":a==="代表性单独送"?"t-rep":"";}
+function pathText(p){return p.pathClass==="未回填"?(p.pathNote||"待回填"):p.pathClass+(p.margin!=="未填"?"·"+p.margin:"");}
+function polypCard(p,d){
+  var shown=d.action,man=p.adopt==="手改";
+  var cid='data-pid="'+esc(p.id)+'"';
+  return '<div class="pc '+cardCls(man?d.suggest.action:shown)+'"><div class="pc-h"><div><span class="t">'+esc(p.segment)+'</span> <span class="m">'+(p.distanceCm?esc(p.distanceCm)+' cm · ':'')+esc(p.sizeMm?p.sizeMm+" mm":"大小未填")+' · '+esc(p.paris)+' · '+(p.nice!=="未选"?esc(p.nice):"—")+'/'+(p.jnet!=="未选"?esc(p.jnet):"—")+' · ×'+expandCount(p)+(p.representative?' · 代表':'')+'</span></div><button class="btn sm" data-edit="'+esc(p.id)+'">编辑</button></div>'+
+   '<div style="margin-top:6px">建议：<span class="badge '+badgeCls(d.suggest.action)+'">'+esc(d.suggest.action)+'</span>'+(man?' → 最终：<span class="badge b-man">'+esc(shown)+'</span>':'')+'</div>'+
+   '<div class="why">依据：'+esc(d.suggest.reason)+'</div>'+
+   '<div class="sub">采纳状态</div>'+'<div class="chips">'+["未定","采纳","手改"].map(function(o){return '<button type="button" class="chip sm'+(p.adopt===o?' on':'')+'" '+cid+' data-k="adopt" data-v="'+o+'">'+o+'</button>';}).join("")+'</div>'+
+   (man?'<div class="sub">最终送检方式（手改）</div><div class="chips">'+FINAL_OPTS.map(function(o){return '<button type="button" class="chip sm'+(p.finalMethod===o?' on':'')+'" '+cid+' data-k="finalMethod" data-v="'+o+'">'+o+'</button>';}).join("")+'</div>':'')+
+   '<div class="meta">病理：'+esc(pathText(p))+'</div></div>';
+}
+function refreshResults(){
+  var c=S.cur;if(!c||S.view!=="edit")return;
+  var total=totalPolypCount(c.polyps);
+  var w="";
+  if(!c.opticalOk)w+='<div class="note n-warn"><b>光学未达标</b>即使高置信度也不走不送检/合并，默认单独送。</div>';
+  if(c.billing==="未知")w+='<div class="note n-info"><b>计费未确认</b>6–9 mm 暂按合并建议；确认按蜡块后将改为单独送。</div>';
+  var miss=segmentsNeedingRep(c);
+  if(total>=5&&miss.length)w+='<div class="note n-warn"><b>缺代表性</b>全肠 ≥'+(total>=10?"10":"5")+' 枚：下列肠段尚未勾选代表性——'+esc(miss.join("、"))+'。请在该段勾 1–2 枚「段内代表性」；未勾者仍可走不送/合并，不会自动改成每枚单独送。</div>';
+  var wn=$("#warns");if(wn)wn.innerHTML=w;
+  $("#segCnt").textContent="本段 "+segmentCount(c.polyps,S.segSel)+" 枚 · 全肠合计 "+total+" 枚";
+  var ds=c.polyps.map(function(p){return {p:p,d:decideSpecimen(p,c,total)};});
+  $("#plistE").innerHTML=ds.length?ds.map(function(x){return polypCard(x.p,x.d);}).join(""):'<div class="empty">选择肠段后点「添加息肉」开始。</div>';
+  var fu=followUp(c.polyps,c);
+  var hr=hasHighRisk(c);
+  $("#fu").innerHTML=
+   '<div class="note '+(fu.tone==="danger"?"n-bad":fu.tone==="warning"?"n-warn":"n-ok")+'"><div style="font-size:18px;font-weight:800">'+esc(fu.interval)+'</div><div>'+esc(fu.basis)+' · 当前指南 '+esc(c.guideline)+'</div><div style="margin-top:4px"><span class="badge b-man">'+(fu.pathOverride?"病理已改写":"数目+大小默认")+'</span></div></div>'+
+   '<div class="note '+(hr?"n-bad":c.opticalOk?"n-ok":"n-warn")+'"><b>路径：'+(hr?"已退出简化":c.opticalOk?"可走简化路径":"仅允许单独送")+'</b><br>高危 '+esc(highRiskLabel(c))+'；光学 '+(c.opticalOk?"已达标":"未达标")+'；计费 '+esc(c.billing)+'；≤5 mm '+esc(c.tinyPolicy)+'</div>'+
+   '<div style="font-size:13px;color:var(--mut)">合并瓶出现高级别时按该肠段最坏结果管理。</div>';
+  $("#sumIn").innerHTML='<span class="sticky-sum"><b>'+esc(c.label||"未命名")+'</b> · 合计 '+total+' 枚 · 高危 '+esc(highRiskLabel(c))+'</span><span class="sticky-sum"><b>随访：'+esc(fu.interval)+'</b></span>';
+  if(S.editId)refreshSheetBanner();
+}
+
+/* ---- 息肉编辑弹层 ---- */
+function curPolyp(){return S.cur&&S.cur.polyps.filter(function(x){return x.id===S.editId;})[0]||null;}
+var sheetBound=false;
+function openSheet(id){
+  S.editId=id;var p=curPolyp();if(!p)return;
+  $("#ovTitle").textContent="编辑息肉";
+  $("#ovBody").innerHTML=
+   '<div id="sheetBanner" class="note n-info"></div>'+
+   '<div class="sec">'+grp("肠段",chips("segment",SEGMENTS,p.segment,true))+'</div>'+
+   '<div class="grid sec">'+inp("sizeMm","大小（mm，最大径）",p.sizeMm,{type:"text",im:"decimal",ph:"如 4"})+inp("distanceCm","退镜距离（cm，距肛缘）",p.distanceCm,{type:"text",im:"decimal"})+inp("copies","同特征枚数",p.copies,{type:"text",im:"numeric"})+'</div>'+
+   '<div class="sec">'+grp("Paris / LST",chips("paris",PARIS,p.paris,true))+'</div>'+
+   '<div class="sec">'+grp("NICE",chips("nice",NICE_OPTS,p.nice,true))+'</div>'+
+   '<div class="sec">'+grp("JNET",chips("jnet",JNET_OPTS,p.jnet,true))+'</div>'+
+   '<div class="sec">'+grp("光学置信度",chips("confidence",["高置信度","低置信度"],p.confidence))+'</div>'+
+   '<div class="grid sec">'+sw("suspectSsl","可疑 SSL",p.suspectSsl)+sw("mucusCap","黏液帽",p.mucusCap)+sw("erosion","糜烂/溃疡样",p.erosion)+sw("representative","段内代表性",p.representative)+sw("photoWl","已留白光图",p.photoWl)+sw("photoNbi","已留 NBI 图",p.photoNbi)+'</div>'+
+   '<div class="sec">'+grp("采纳建议",chips("adopt",["未定","采纳","手改"],p.adopt))+'</div>'+
+   '<div class="sec" id="finalGrp">'+grp("最终送检方式（手改时选择）",chips("finalMethod",FINAL_OPTS,p.finalMethod))+'</div>'+
+   '<h3>病理回填</h3><div class="grid sec">'+grp("病理分类",'<select data-k="pathClass">'+PATH_OPTS.map(function(o){return '<option'+(o===p.pathClass?" selected":"")+'>'+esc(o)+'</option>';}).join("")+'</select>')+grp("切缘",chips("margin",MARGIN_OPTS,p.margin,true))+inp("pathNote","病理备注",p.pathNote,{ph:"补充描述"})+'</div>';
+  if(!sheetBound){sheetBound=true;
+    bind($("#ovBody"),function(){return curPolyp();},function(k,isChip){
+      saveSoon();refreshResults();if(k==="segment"){S.segSel=curPolyp().segment;$("#segChips").innerHTML=chips("seg",SEGMENTS,S.segSel);$("#segName").textContent=S.segSel;}
+    });
+    $("#ovBody").addEventListener("change",function(e){if(e.target.matches("select[data-k]")){var p=curPolyp();if(p){p[e.target.getAttribute("data-k")]=e.target.value;saveSoon();refreshResults();}}});
+  }
+  $("#ov").classList.add("show");document.body.style.overflow="hidden";
+  refreshSheetBanner();
+}
+function refreshSheetBanner(){
+  var p=curPolyp(),c=S.cur;if(!p){return;}
+  var d=decideSpecimen(p,c,totalPolypCount(c.polyps));
+  var el=$("#sheetBanner");if(!el)return;
+  el.className="note "+(d.suggest.action==="单独送检"?"n-warn":d.suggest.action==="代表性单独送"?"n-info":"n-ok");
+  el.innerHTML='<b>系统建议：'+esc(d.suggest.action)+'</b>'+(p.adopt==="手改"?' → 最终：<b>'+esc(d.action)+'</b>':'')+'<br>依据：'+esc(d.suggest.reason);
+  $("#finalGrp").classList.toggle("hide",p.adopt!=="手改");
+}
+function closeSheet(){$("#ov").classList.remove("show");document.body.style.overflow="";S.editId=null;}
+
+/* ---- 统计 ---- */
+function renderStats(){
+  var pts=Array.from(cache.values());var recs=0,exp=0,filled=0,adopt=0,manual=0,undec=0,cats={};
+  ["单独送检","同段合并送","代表性单独送","不送检","可不切除"].forEach(function(k){cats[k]=0;});
+  pts.forEach(function(pt){var tot=totalPolypCount(pt.polyps);pt.polyps.forEach(function(p){
+    recs++;exp+=expandCount(p);if(p.pathClass!=="未回填")filled++;
+    if(p.adopt==="采纳")adopt++;else if(p.adopt==="手改")manual++;else undec++;
+    var d=decideSpecimen(p,pt,tot);var c=finalCategory(p,d);cats[c]=(cats[c]||0)+1;});});
+  var dec=adopt+manual;
+  function pct(a,b){return b?Math.round(a*1000/b)/10+"%":"—";}
+  var html='<div class="card"><h2>统计面板</h2><div class="stat-grid">'+
+   '<div class="stat"><div class="v">'+pts.length+'</div><div class="k">总患者数</div></div>'+
+   '<div class="stat"><div class="v">'+exp+'</div><div class="k">总息肉数（按枚，含“同特征枚数”）</div></div>'+
+   '<div class="stat"><div class="v">'+recs+'</div><div class="k">息肉记录条数</div></div>'+
+   '<div class="stat"><div class="v">'+pct(adopt,dec)+'</div><div class="k">建议采纳率（采纳 '+adopt+' / 已决策 '+dec+'）</div></div>'+
+   '<div class="stat"><div class="v">'+pct(filled,recs)+'</div><div class="k">病理回填率（'+filled+' / '+recs+'）</div></div>'+
+   '<div class="stat"><div class="v">'+undec+'</div><div class="k">采纳状态“未定”条数</div></div></div>'+
+   '<h3>最终送检方式占比（按记录条数；手改者按手改后的最终方式）</h3>';
+  Object.keys(cats).forEach(function(k){var v=cats[k];html+='<div class="bar"><span class="nm">'+esc(k)+'</span><span class="tr"><span class="fl" style="display:block;width:'+(recs?v*100/recs:0)+'%"></span></span><span class="vv">'+v+'（'+pct(v,recs)+'）</span></div>';});
+  html+='<p style="font-size:13px;color:var(--mut)">统计基于本机本浏览器中的数据；需要做课题请在「备份/说明」导出 CSV（一行一枚息肉）。</p></div>';
+  $("#main").innerHTML=html;
+}
+
+/* ---- 导出 / 导入 ---- */
+function deviceName(){return (lsGet(LS_DEV)||"").trim();}
+function download(name,blob){var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},1500);}
+function safeName(s){return s.replace(/[\\\/:*?"<>|\s]+/g,"_");}
+function csvCell(v){var s=String(v===undefined||v===null?"":v);if(/^[=+@\-]/.test(s)&&isNaN(Number(s)))s="'"+s;return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function yn(b){return b?"是":"否";}
+function buildCsv(){
+  var H=["患者id","检查日期","检查号","患者标识","Lynch","SPS","FAP/AFAP","既往进展期/T1","IBD异型","光学诊断达标","病理计费","≤5mm策略","随访指南","患者息肉总枚数","随访建议间隔","随访依据","患者创建时间","患者修改时间","息肉id","肠段","距肛缘cm","大小mm","Paris/LST","NICE","JNET","可疑SSL","黏液帽","糜烂溃疡样","光学置信度","同特征枚数","段内代表性","已留白光图","已留NBI图","系统送检建议","建议依据","采纳状态","最终送检方式","病理分类","切缘","病理备注"];
+  var rows=[H];
+  var pts=Array.from(cache.values()).sort(function(a,b){return (a.examDate||"").localeCompare(b.examDate||"")||Date.parse(a.createdAt)-Date.parse(b.createdAt);});
+  pts.forEach(function(pt){
+    var tot=totalPolypCount(pt.polyps),fu=followUp(pt.polyps,pt);
+    var base=[pt.id,pt.examDate,pt.examNo,pt.label,yn(pt.lynch),yn(pt.sps),yn(pt.fap),yn(pt.priorAdvanced),yn(pt.ibdDysplasia),yn(pt.opticalOk),pt.billing,pt.tinyPolicy,pt.guideline,tot,fu.interval,fu.basis,fmtDT(pt.createdAt),fmtDT(pt.updatedAt)];
+    if(!pt.polyps.length){rows.push(base.concat(new Array(H.length-base.length).fill("")));return;}
+    pt.polyps.forEach(function(p){var d=decideSpecimen(p,pt,tot);
+      rows.push(base.concat([p.id,p.segment,p.distanceCm,p.sizeMm,p.paris,p.nice,p.jnet,yn(p.suspectSsl),yn(p.mucusCap),yn(p.erosion),p.confidence,expandCount(p),yn(p.representative),yn(p.photoWl),yn(p.photoNbi),d.suggest.action,d.suggest.reason,p.adopt,finalCategory(p,d)+(p.adopt==="手改"?"（手改）":""),p.pathClass,p.margin,p.pathNote]));});
+  });
+  return "\uFEFF"+rows.map(function(r){return r.map(csvCell).join(",");}).join("\r\n")+"\r\n";
+}
+
+/* ================= 对话框 ================= */
+function dialog(o){return new Promise(function(res){
+  var ov=$("#dlg"),okB=$("#dlgOk"),noB=$("#dlgNo"),err=$("#dlgErr");
+  $("#dlgT").textContent=o.title;$("#dlgB").innerHTML=o.html;err.textContent="";okB.textContent=o.ok||"确定";okB.disabled=false;
+  noB.classList.toggle("hide",!!o.noCancel);ov.classList.add("show");
+  var f=ov.querySelector("input:not([type=radio]):not([type=checkbox])");if(f)setTimeout(function(){f.focus();},60);
+  function done(v){ov.classList.remove("show");okB.onclick=noB.onclick=null;ov.onkeydown=null;res(v);}
+  okB.onclick=async function(){
+    var r=o.collect?o.collect($("#dlgB")):{};
+    if(o.validate){okB.disabled=true;var old=o.ok||"确定";okB.textContent="处理中…";var e=null;
+      try{e=await o.validate(r);}catch(x){e=String(x&&x.message||x);}
+      okB.disabled=false;okB.textContent=old;if(e){err.textContent=e;return;}}
+    done(r);};
+  noB.onclick=function(){done(null);};
+  ov.onkeydown=function(e){if(e.key==="Enter"&&e.target.tagName==="INPUT"&&e.target.type!=="radio"){e.preventDefault();okB.onclick();}};
+});}
+function dv(root,f){var el=root.querySelector('[data-f="'+f+'"]');return el?el.value:"";}
+function pwField(f,label,ac){return '<div class="fld" style="margin-bottom:12px"><label class="lb">'+esc(label)+'</label><input type="password" data-f="'+f+'" autocomplete="'+(ac||"off")+'"></div>';}
+
+/* ================= 导出 / 导入 ================= */
+async function exportJson(){
+  if(!sessKey)return;
+  if(S.view==="edit"&&saveT)await flushSave();
+  await saveQueue;
+  var r=await dialog({title:"导出备份",ok:"导出",html:
+    '<label class="sw rd" style="margin-bottom:10px"><input type="radio" name="bm" value="enc" checked><span>加密备份（默认，用当前账号密码加密）</span></label>'+
+    '<label class="sw rd"><input type="radio" name="bm" value="plain"><span>明文备份（任何人拿到文件都能读）</span></label>'+
+    '<p style="font-size:13px;color:var(--mut)">加密备份只能用<b>导出时那台设备的登录密码</b>解开；换设备导入时需输入该密码。旧版明文备份也仍可导入。</p>',
+    collect:function(root){return {mode:root.querySelector('input[name="bm"]:checked').value};}});
+  if(!r)return;
+  var arr=Array.from(cache.values()),dev=deviceName(),t=nowIso(),obj;
+  if(r.mode==="enc"){
+    var e=await aesEnc(sessKey,JSON.stringify({patients:arr}),"backup");
+    obj={app:"polyp-card",version:2,encrypted:true,exportedAt:t,device:dev,count:arr.length,kdf:{name:"PBKDF2-SHA256",iter:authRec.iter,salt:authRec.salt},iv:e.iv,ct:e.ct};
+  }else obj={app:"polyp-card",version:1,exportedAt:t,device:dev,count:arr.length,patients:arr};
+  download("结肠息肉卡备份_"+safeName(dev||"未命名设备")+"_"+stamp()+(r.mode==="enc"?"_加密":"_明文")+".json",new Blob([JSON.stringify(obj,null,r.mode==="enc"?0:1)],{type:"application/json"}));
+  lsSet(LS_BK,t);renderBanner();toast("已导出"+(r.mode==="enc"?"加密":"明文")+"备份（"+arr.length+" 位患者）。请把文件存到网盘/发到文件传输助手。");
+  if(S.view==="backup")renderBackup();
+}
+async function decryptBackup(obj){
+  if(!obj.kdf||!obj.kdf.salt||!obj.iv||!obj.ct||!(obj.kdf.iter>0&&obj.kdf.iter<=5000000)){alert("导入失败：加密备份文件格式不正确。");return null;}
+  if(authRec&&obj.kdf.salt===authRec.salt){try{var o=JSON.parse(await aesDec(sessKey,obj,"backup"));if(Array.isArray(o.patients))return o.patients;}catch(e){}}
+  var pl=null;
+  var r=await dialog({title:"输入备份密码",ok:"解密并导入",html:'<p style="margin-top:0">这份加密备份的密码与当前账号不同。请输入<b>导出该备份的那台设备的登录密码</b>。</p>'+pwField("pw","备份密码"),
+    collect:function(root){return {pw:dv(root,"pw")};},
+    validate:async function(v){if(!v.pw)return "请输入备份密码";
+      try{var k=await deriveKey(v.pw,unb64(obj.kdf.salt),obj.kdf.iter);var o=JSON.parse(await aesDec(k,obj,"backup"));if(!Array.isArray(o.patients))return "备份内容不正确";pl=o.patients;return null;}
+      catch(e){return "备份密码错误，或文件已损坏";}}});
+  return r?pl:null;
+}
+async function importJsonText(text){
+  if(!sessKey)return;
+  var obj;try{obj=JSON.parse(text);}catch(e){alert("导入失败：不是有效的 JSON 文件。");return;}
+  var list;
+  if(obj&&obj.encrypted){list=await decryptBackup(obj);if(!list)return;}
+  else list=Array.isArray(obj)?obj:(obj&&Array.isArray(obj.patients)?obj.patients:null);
+  if(!list){alert("导入失败：文件里没有找到患者数据（应为本工具导出的备份文件）。");return;}
+  if(S.view==="edit"&&saveT)await flushSave();
+  var add=0,upd=0,skip=0,bad=0,put=[];
+  list.forEach(function(raw){
+    if(!raw||typeof raw.id!=="string"||!raw.id||!Array.isArray(raw.polyps)){bad++;return;}
+    var n=normPatient(raw),c=cache.get(n.id);
+    if(!c){add++;put.push(n);}
+    else if(newer(n,c)){upd++;put.push(n);}
+    else skip++;
+  });
+  if(put.length)await dbPutMany(put);
+  if(S.view==="edit"&&S.cur&&cache.get(S.cur.id)){S.cur=JSON.parse(JSON.stringify(cache.get(S.cur.id)));}
+  render();
+  var msg="导入完成：新增 "+add+" 条，更新 "+upd+" 条（备份里更新），跳过 "+skip+" 条（本机已有且不比备份旧）"+(bad?"，无效 "+bad+" 条":"")+"。\n同一 id 以修改时间较新者为准。"+(obj.device?"\n备份来源设备："+obj.device:"")+(obj.encrypted?"\n（加密备份，已解密并重新加密存入本机）":"");
+  alert(msg);
+}
+async function exportCsv(){
+  if(!confirm("CSV 是明文文件（未加密），Excel 可直接打开。请妥善保管，不要随意转发；其中不应含身份证/姓名全称。\n继续导出？"))return;
+  if(S.view==="edit"&&saveT)await flushSave();
+  download("结肠息肉卡数据_"+stamp()+".csv",new Blob([buildCsv()],{type:"text/csv;charset=utf-8"}));
+  toast("已导出 CSV（明文，UTF-8 带 BOM，Excel 可直接打开）");
+}
+function pickImport(){$("#impFile").value="";$("#impFile").click();}
+
+/* ================= 账号与安全 ================= */
+async function doChangePassword(){
+  if(S.view==="edit"&&saveT)await flushSave();
+  var r=await dialog({title:"修改密码",ok:"修改并重新加密",html:
+    '<p style="margin-top:0;font-size:14px;color:var(--mut)">会用新密码重新加密本机全部数据。完成后请重新导出一份备份（旧的加密备份仍需旧密码才能解开）。</p>'+
+    pwField("old","旧密码","current-password")+pwField("n1","新密码（至少 6 位）","new-password")+pwField("n2","再次输入新密码","new-password"),
+    collect:function(root){return {old:dv(root,"old"),n1:dv(root,"n1"),n2:dv(root,"n2")};},
+    validate:async function(v){
+      if(!v.old)return "请输入旧密码";
+      if(v.n1.length<6)return "新密码至少 6 位";
+      if(v.n1!==v.n2)return "两次输入的新密码不一致";
+      if(v.n1===v.old)return "新密码不能与旧密码相同";
+      return await changePassword(v.old,v.n1);}});
+  if(r){toast("密码已修改，本机数据已用新密码重新加密。");}
+}
+async function doClearAll(fromLogin){
+  var a=await dialog({title:"忘记密码 / 清空本机数据",ok:"我已了解，继续",html:
+    '<div class="note n-bad"><b>密码无法找回。</b>数据已用密码加密，开发者和本页都没有办法恢复。唯一的办法是<b>清空本机数据后重新设置账号密码</b>。</div>'+
+    '<ul class="t"><li>这会删除本浏览器里的所有患者记录和账号设置，不可撤销。</li><li>如果你之前导出过备份（JSON 文件），清空并重新设置后，可在「导入备份」里恢复（加密备份需要<b>导出时的那个密码</b>）。</li><li>没有备份的数据将永久丢失。</li></ul>'});
+  if(!a)return;
+  var b=await dialog({title:"再次确认",ok:"清空本机数据",html:'<p style="margin-top:0">请输入「<b>清空</b>」两个字确认，这将永久删除本机全部数据。</p><div class="fld"><input type="text" data-f="t" autocomplete="off" placeholder="清空"></div>',
+    collect:function(root){return {t:dv(root,"t").trim()};},
+    validate:async function(v){return v.t==="清空"?null:"请输入“清空”两个字";}});
+  if(!b)return;
+  clearTimeout(saveT);saveT=null;S.cur=null;S.editId=null;closeSheet();
+  await clearAllLocal();
+  $("#bkLast").textContent="";
+  showAuth("setup","本机数据已清空，请重新设置账号和密码。");
+}
+function renderBackup(){
+  var lb=lastBackup();
+  $("#main").innerHTML=
+  '<div class="card"><h2>备份与跨设备迁移（手动 JSON）</h2>'+
+   '<div class="row" style="margin-bottom:12px"><button class="btn pri" id="bExp">⬇ 导出备份（JSON）</button><button class="btn" id="bImp">⬆ 导入备份（JSON）</button><button class="btn" id="bCsv">导出 CSV（明文）</button></div>'+
+   '<div style="color:var(--mut);font-size:14px;margin-bottom:12px">上次备份：'+(lb?fmtDT(lb):"尚未备份")+' · 当前 '+cache.size+' 位患者。超过 7 天未备份会出现提醒横幅。</div>'+
+   '<div class="grid"><div class="fld"><label class="lb">本设备名称（会写入备份文件名，如“电脑”“手机”）</label><input type="text" id="devName" value="'+esc(deviceName())+'" placeholder="电脑 / 手机 / 科室电脑"></div></div>'+
+   '<h3>三步搬数据（电脑 ⇄ 手机，两个方向相同）</h3><ol class="t"><li><b>导出：</b>在来源设备点「导出备份」（默认加密），得到 <code>结肠息肉卡备份_设备名_日期时间_加密.json</code>。</li>'+
+   '<li><b>传输：</b>通过网盘 / 微信「文件传输助手」/ 邮件 / 隔空投送把文件发到另一台设备。</li>'+
+   '<li><b>导入：</b>在另一台设备打开本页并登录，点「导入备份」选择文件；若两台设备密码不同，会要求输入<b>导出设备的密码</b>。按 id 合并，同一条记录以<b>修改时间较新</b>者为准，导入后提示新增/更新/跳过条数。</li></ol>'+
+   '<div class="note n-info">不同设备<b>各自设置账号密码</b>，数据<b>不会自动同步</b>，靠备份文件搬运。合并是安全的，可反复导入。CSV 导出是<b>明文</b>，请妥善保管。</div></div>'+
+  '<div class="card"><h2>账号与安全</h2><div style="margin-bottom:10px">当前用户：<b>'+esc(sessUser)+'</b>　·　空闲 15 分钟自动锁定</div>'+
+   '<div class="row"><button class="btn" id="bLock">🔒 退出登录 / 锁定</button><button class="btn" id="bPw">修改密码</button><button class="btn dng" id="bClear">忘记密码 / 清空本机数据</button></div>'+
+   '<p style="font-size:13px;color:var(--mut)">密码<b>无法找回</b>：数据用你的密码加密，开发者和本页都无法解开。忘记密码只能清空本机数据重新设置，之后用备份恢复。</p></div>'+
+  '<div class="card"><h2>隐私与数据位置</h2><ul class="t"><li>网页放在公开网址，但<b>你录入的数据只存在本设备浏览器里，并已加密（AES-GCM，密钥由密码经 PBKDF2-SHA256 30 万次派生）</b>，不上传任何服务器。</li>'+
+   '<li>请勿录入身份证号、姓名全称；用床号/首字母/检查号即可。</li>'+
+   '<li><b>换浏览器、清除网站数据、无痕模式、重装系统，数据都会丢失</b>，请定期导出备份。</li>'+
+   '<li>当前存储：'+esc(backendName)+'。</li></ul></div>'+
+  '<div class="card"><h2>在手机上使用</h2><ul class="t"><li>手机上的数据存在<b>该手机浏览器</b>里，与电脑不同步，用上面的 JSON 导出/导入迁移。</li>'+
+   '<li><b>iPhone：</b>请用 <b>Safari</b> 打开网址，点「分享 → 添加到主屏幕」。Safari 对长期（约 7 天）不访问的网站数据可能清理（添加到主屏幕后通常更稳），<b>请定期导出备份</b>。从主屏幕图标打开和从 Safari 打开，数据可能相互独立，请固定一种方式使用。</li>'+
+   '<li><b>安卓：</b>用 Chrome 打开网址，菜单里「添加到主屏幕/安装应用」。</li></ul></div>';
+  $("#bExp").onclick=exportJson;$("#bImp").onclick=pickImport;$("#bCsv").onclick=exportCsv;
+  $("#bLock").onclick=function(){lockNow("已退出登录。");};$("#bPw").onclick=doChangePassword;$("#bClear").onclick=function(){doClearAll(false);};
+  $("#devName").addEventListener("input",function(){lsSet(LS_DEV,this.value);});
+}
+
+/* ================= 登录 / 设置 / 锁定 ================= */
+var failCount=0,blockUntil=0,lastAct=Date.now(),idleTimer=null;
+function showAuth(mode,msg){
+  document.body.classList.add("locked");$("#main").innerHTML="";$("#sumBar").classList.add("hide");$("#auth").classList.remove("hide");
+  var box=$("#authBox");
+  if(mode==="nocrypto"||!cryptoOk()){
+    box.innerHTML='<div class="auth-logo">⚠️</div><h2>当前环境不支持加密</h2><p>本工具需要浏览器的 Web Crypto 加密功能，它只在 <b>https 网址</b>或 <b>localhost / 本地文件</b>下可用。请改用 https 访问地址，或换用 Safari / Chrome / Edge 等较新的浏览器。出于安全考虑，不支持加密时本工具<b>不会</b>以未加密方式保存数据。</p>';return;}
+  if(mode==="setup"){
+    box.innerHTML='<div class="auth-logo">🔐</div><h2>首次使用：设置账号和密码</h2><p style="margin-top:4px;color:var(--mut);font-size:14px">数据只存在本设备浏览器并用密码加密，不上传服务器。</p>'+
+      (msg?'<div class="note n-info">'+esc(msg)+'</div>':'')+
+      '<form id="authForm"><div class="fld"><label class="lb">用户名</label><input type="text" id="aUser" autocomplete="username" maxlength="32"></div>'+
+      '<div class="fld"><label class="lb">密码（至少 6 位）</label><input type="password" id="aPw" autocomplete="new-password"></div>'+
+      '<div class="fld"><label class="lb">再次输入密码</label><input type="password" id="aPw2" autocomplete="new-password"></div>'+
+      '<div class="auth-err" id="aErr"></div><button class="btn pri" style="width:100%" id="aGo" type="submit">设置并进入</button></form>'+
+      '<div class="note n-warn" style="margin-top:14px"><b>请牢记密码。</b>密码无法找回；忘记后只能清空本机数据重新设置（可用备份恢复）。如本机还有旧版未加密数据，会在设置密码时自动加密迁移。</div>'+
+      '<p style="font-size:13px;color:var(--mut)">有备份文件？先设置账号，进入后在「备份/说明」里导入即可。</p>';
+    $("#authForm").onsubmit=function(e){e.preventDefault();doSetup();};
+    setTimeout(function(){$("#aUser").focus();},60);
+  }else{
+    box.innerHTML='<div class="auth-logo">🔒</div><h2>登录</h2><p style="margin-top:4px;color:var(--mut);font-size:14px">结肠息肉送检随访决策卡 · 数据已加密</p>'+
+      (msg?'<div class="note n-info">'+esc(msg)+'</div>':'')+
+      '<form id="authForm"><div class="fld"><label class="lb">用户名</label><input type="text" id="aUser" autocomplete="username" value="'+esc(authRec?authRec.user:"")+'"></div>'+
+      '<div class="fld"><label class="lb">密码</label><input type="password" id="aPw" autocomplete="current-password"></div>'+
+      '<div class="auth-err" id="aErr"></div><button class="btn pri" style="width:100%" id="aGo" type="submit">登录</button></form>'+
+      '<div style="margin-top:10px;text-align:center"><button class="linkb" id="aForgot" type="button">忘记密码？</button></div>';
+    $("#authForm").onsubmit=function(e){e.preventDefault();doLogin();};
+    $("#aForgot").onclick=function(){doClearAll(true);};
+    setTimeout(function(){$("#aPw").focus();},60);
+  }
+}
+async function doSetup(){
+  var u=$("#aUser").value.trim(),p=$("#aPw").value,p2=$("#aPw2").value,err=$("#aErr"),go=$("#aGo");
+  if(!u){err.textContent="请输入用户名";return;}
+  if(p.length<6){err.textContent="密码至少 6 位";return;}
+  if(p!==p2){err.textContent="两次输入的密码不一致";return;}
+  err.textContent="";go.disabled=true;go.textContent="正在加密…";
+  try{var n=await createAccount(u,p);afterUnlock(n>0?"已将本机 "+n+" 位旧版未加密患者数据加密迁移。":"账号已设置。");}
+  catch(e){err.textContent="设置失败："+(e&&e.message||e);go.disabled=false;go.textContent="设置并进入";}
+}
+async function doLogin(){
+  var now=Date.now(),err=$("#aErr"),go=$("#aGo");
+  if(now<blockUntil){err.textContent="尝试次数过多，请 "+Math.ceil((blockUntil-now)/1000)+" 秒后再试";return;}
+  var u=$("#aUser").value.trim(),p=$("#aPw").value;
+  if(!u||!p){err.textContent="请输入用户名和密码";return;}
+  err.textContent="";go.disabled=true;go.textContent="验证中…";
+  var r;try{r=await loginAccount(u,p);}catch(e){r={ok:false};}
+  go.disabled=false;go.textContent="登录";
+  if(!r.ok){failCount++;if(failCount>=5){blockUntil=Date.now()+30000;failCount=0;err.textContent="用户名或密码错误。连续错误 5 次，请 30 秒后再试。";}else err.textContent="用户名或密码错误";$("#aPw").value="";return;}
+  failCount=0;afterUnlock(r.bad?"有 "+r.bad+" 条记录无法解密（可能已损坏），请用备份恢复。":"");
+}
+function afterUnlock(note){
+  document.body.classList.remove("locked");$("#auth").classList.add("hide");$("#authBox").innerHTML="";
+  S.view="list";S.cur=null;S.q="";S.from="";S.to="";startIdle();
+  setSaveState("已就绪 · "+cache.size+" 位患者 · 用户 "+sessUser);render();window.scrollTo(0,0);
+  if(note)toast(note);
+}
+async function lockNow(msg){
+  if(!sessKey)return;
+  closeSheet();$("#dlg").classList.remove("show");$("#toast").classList.remove("show");
+  if(saveT)await flushSave();await saveQueue;
+  S.cur=null;S.editId=null;lockMemory();clearInterval(idleTimer);setSaveState("已锁定");
+  showAuth("login",msg||"已锁定。");
+}
+function touchAct(){lastAct=Date.now();}
+function checkIdle(){if(sessKey&&Date.now()-lastAct>IDLE_MS)lockNow("空闲超过 15 分钟，已自动锁定。");}
+function startIdle(){touchAct();clearInterval(idleTimer);idleTimer=setInterval(checkIdle,3000);}
+["pointerdown","keydown","touchstart","input","scroll","click"].forEach(function(ev){document.addEventListener(ev,touchAct,{passive:true,capture:true});});
+document.addEventListener("visibilitychange",function(){if(!document.hidden)checkIdle();});
+
+/* ================= 初始化 ================= */
+function initMainBind(){
+  var main=$("#main");
+  bind(main,function(el){var k=el.getAttribute("data-k");if(S.view!=="edit"||!S.cur)return null;if(el.closest("#plistE"))return null;if(k==="seg")return {};return S.cur;},function(k){
+    if(k==="seg")return;
+    saveSoon();refreshResults();
+  });
+  main.addEventListener("click",function(e){var b=e.target.closest('.chip[data-k="seg"]');if(b&&S.view==="edit"){S.segSel=b.getAttribute("data-v");$("#segName").textContent=S.segSel;refreshResults();}});
+}
+async function init(){
+  initMainBind();
+  $("#tabs").addEventListener("click",function(e){var t=e.target.closest(".tab");if(t&&sessKey)setView(t.getAttribute("data-v"));});
+  $("#topExport").onclick=exportJson;$("#topImport").onclick=pickImport;
+  $("#lockBtn").onclick=function(){lockNow("已锁定。");};
+  $("#impFile").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;var r=new FileReader();r.onload=function(){importJsonText(String(r.result));};r.readAsText(f,"utf-8");});
+  $("#fab").onclick=function(){if(S.view==="edit")addPolyp();};
+  $("#ovOk").onclick=closeSheet;$("#ovX").onclick=closeSheet;
+  $("#ov").addEventListener("click",function(e){if(e.target===this)closeSheet();});
+  $("#ovDel").onclick=function(){var p=curPolyp();if(!p)return;if(confirm("确认删除这条息肉记录？")){S.cur.polyps=S.cur.polyps.filter(function(x){return x.id!==p.id;});closeSheet();saveSoon();refreshResults();}};
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet();});
+  if(!cryptoOk()){showAuth("nocrypto");return;}
+  try{await storageOpen();}catch(e){}
+  showAuth(hasAuth()?"login":"setup");
+  try{if("serviceWorker" in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register("sw.js").catch(function(){});}catch(e){}
+}
+init();
+</script>
+</body>
+</html>
