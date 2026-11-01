@@ -166,10 +166,12 @@ function pad2(n){return (n<10?"0":"")+n;}
 function todayStr(){var d=new Date();return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());}
 function nowIso(){return new Date().toISOString();}
 function parseNum(s){if(s===null||s===undefined)return NaN;var t=String(s).trim();if(t==="")return NaN;var n=Number(t);return isFinite(n)?n:NaN;}
+var SSL_FLAGS=[["sslMucusCap","粘液帽"],["sslCloudSurface","云雾状表面"],["sslIndistinctBorder","边界不清"],["sslIrregularShape","形态不规则"]];
 function emptyPolyp(seq){
   return {id:uid(),seq:seq,bottle:String(seq),sizeMm:"",paris:"未选",redness:false,depressed:false,
     nice:"未选",resection:"未选",completeResection:"未选",retrieved:true,
-    jnet:"未评",sslLike:false,relativePos:"未填",ulcerNodule:false,opticalConf:"未填",
+    jnet:"未评",sslLike:false,sslMucusCap:false,sslCloudSurface:false,sslIndistinctBorder:false,sslIrregularShape:false,
+    relativePos:"未填",surfaceErosionUlcer:"none",surfaceNodular:false,opticalConf:"未填",
     pathType:"待报",dysplasia:"未填",villous:"未填",sslDysplasia:"不适用",margin:"未填",pathDate:""};
 }
 function emptySegment(){
@@ -212,11 +214,33 @@ async function deriveKey(pw,salt,iter){
 async function aesEnc(key,text,aad){var iv=crypto.getRandomValues(new Uint8Array(12));var ct=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv,additionalData:TE.encode(aad||"")},key,TE.encode(text));return {iv:b64(iv),ct:b64(ct)};}
 async function aesDec(key,rec,aad){var pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(rec.iv),additionalData:TE.encode(aad||"")},key,unb64(rec.ct));return TD.decode(pt);}
 
+function needsSeparate(p){return !!p&&(p.surfaceErosionUlcer==="erosion"||p.surfaceErosionUlcer==="ulcer");}
+function waspCountOf(p){var n=0;SSL_FLAGS.forEach(function(it){if(p&&p[it[0]])n++;});return n;}
+function clearSslFlags(o){SSL_FLAGS.forEach(function(it){o[it[0]]=false;});}
+function ulcerLegacyTruthy(v){
+  return !(v===undefined||v===null||v===false||v===0||v===""||v==="0"||v==="否"||v==="false"||v==="无"||v==="none");
+}
+/* 旧「溃疡/白苔或明显结节」是单一是否。能识别的字符串才迁入新字段；单纯「是」无法区分，保留原字段。 */
+function applyUlcerMigration(raw,o){
+  if(!raw||!ulcerLegacyTruthy(raw.ulcerNodule))return;
+  var v=raw.ulcerNodule;
+  if(v===true||v===1||v==="1"||v==="是"||v==="true"){o.ulcerNodule=true;return;}
+  if(typeof v!=="string"){o.ulcerNodule=v;return;}
+  var s=v.trim();if(!s)return;
+  var mapped=false;
+  if(/结节|颗粒/.test(s)){o.surfaceNodular=true;mapped=true;}
+  if(/糜烂/.test(s)){if(o.surfaceErosionUlcer==="none")o.surfaceErosionUlcer="erosion";mapped=true;}
+  else if(/溃疡|白苔/.test(s)){if(o.surfaceErosionUlcer==="none")o.surfaceErosionUlcer="ulcer";mapped=true;}
+  if(!mapped)o.ulcerNodule=v;
+}
 function normPolyp(p){var d=emptyPolyp(1),o={};for(var k in d)o[k]=(p&&p[k]!==undefined&&p[k]!==null)?p[k]:d[k];
   if(typeof o.id!=="string"||!o.id)o.id=uid();
-  ["redness","depressed","sslLike","ulcerNodule","retrieved"].forEach(function(k){o[k]=!!o[k];});
+  ["redness","depressed","sslLike","retrieved","surfaceNodular"].concat(SSL_FLAGS.map(function(it){return it[0];})).forEach(function(k){o[k]=!!o[k];});
   ["bottle","sizeMm","pathDate"].forEach(function(k){o[k]=String(o[k]==null?"":o[k]);});
   o.seq=parseInt(o.seq,10);if(!(o.seq>0))o.seq=1;
+  if(o.surfaceErosionUlcer!=="erosion"&&o.surfaceErosionUlcer!=="ulcer")o.surfaceErosionUlcer="none";
+  applyUlcerMigration(p,o);
+  if(!o.sslLike)clearSslFlags(o);
   return o;}
 function normSegment(p){var d=emptySegment(),o={};for(var k in d)o[k]=(p&&p[k]!==undefined&&p[k]!==null)?p[k]:d[k];
   if(typeof o.id!=="string"||!o.id)o.id=uid();
@@ -333,6 +357,20 @@ function chipYN(name,val,disabled){
     '<button type="button" class="chip'+(val===true?" on":"")+'" data-v="1"'+(disabled?" disabled":"")+'>是</button>'+
     '<button type="button" class="chip'+(val===false?" on":"")+'" data-v="0"'+(disabled?" disabled":"")+'>否</button></div>';
 }
+function chipErosion(val,disabled){
+  return '<div class="chips" data-eros="1">'+
+    [["none","无"],["erosion","糜烂"],["ulcer","溃疡"]].map(function(it){
+      return '<button type="button" class="chip'+(val===it[0]?" on":"")+'" data-v="'+it[0]+'"'+(disabled?" disabled":"")+'>'+it[1]+'</button>';
+    }).join("")+'</div>';
+}
+function sslFlagFields(p,disabled){
+  if(!p.sslLike)return "";
+  var dis=disabled?" disabled":"";
+  return '<div class="fld"><label class="lb">WASP 白光/NBI 特征（可多选）</label>'+
+    SSL_FLAGS.map(function(it){
+      return '<label class="sw"><input type="checkbox" data-ssl="'+it[0]+'"'+(p[it[0]]?" checked":"")+dis+'><span>'+esc(it[1])+'</span></label>';
+    }).join("")+'</div>';
+}
 function dialog(o){return new Promise(function(res){
   var ov=$("#dlg"),okB=$("#dlgOk"),noB=$("#dlgNo"),err=$("#dlgErr");
   $("#dlgT").textContent=o.title;$("#dlgB").innerHTML=o.html;err.textContent="";okB.textContent=o.ok||"确定";okB.disabled=false;
@@ -441,10 +479,12 @@ function renderEdit(){
   var plist=(s.polyps||[]).slice().sort(function(a,b){return a.seq-b.seq;}).map(function(p){
     var badges="";
     if(!inGoldStandard(p))badges+='<span class="badge b-bad">不入金标准</span> ';
+    if(needsSeparate(p))badges+='<span class="badge b-bad">必须单独送检</span> ';
     if(pathPending(p))badges+='<span class="badge b-path">待补病理</span> ';
     else badges+='<span class="badge b-ok">'+esc(p.pathType)+'</span> ';
     var size=p.sizeMm===""?"未填":(p.sizeMm+" mm");
-    return '<div class="pc" data-pid="'+esc(p.id)+'"><div class="pc-h"><div><div class="t">#'+esc(p.seq)+' · 瓶 '+esc(p.bottle)+'</div><div class="m">'+esc(size)+' · Paris '+esc(p.paris)+' · NICE '+esc(p.nice)+'</div></div><div>'+badges+'</div></div></div>';
+    var sepNote=needsSeparate(p)?'<div class="note n-bad" style="margin:8px 0 0">建议单独送检，评估深部浸润</div>':'';
+    return '<div class="pc" data-pid="'+esc(p.id)+'"><div class="pc-h"><div><div class="t">#'+esc(p.seq)+' · 瓶 '+esc(p.bottle)+'</div><div class="m">'+esc(size)+' · Paris '+esc(p.paris)+' · NICE '+esc(p.nice)+'</div></div><div>'+badges+'</div></div>'+sepNote+'</div>';
   }).join("")||'<div class="empty">尚未添加息肉。点右下角「添加息肉」或下方批量添加。</div>';
 
   $("#main").innerHTML=
@@ -534,14 +574,18 @@ function renderPolypSheet(){
     '<div class="fld"><label class="lb req">凹陷（含 IIc）</label>'+chipYN("depressed",p.depressed,ml)+'</div>'+
     '<div class="fld"><label class="lb req">回收成功</label>'+chipYN("retrieved",p.retrieved,ml)+'</div>'+
     (!inGoldStandard(p)?'<div class="note n-bad"><b>不入金标准</b> 回收失败或完整切除=否。</div>':'')+
-    '<details class="opt" '+(p.jnet!=="未评"||p.sslLike||p.relativePos!=="未填"||p.ulcerNodule||p.opticalConf!=="未填"?"open":"")+'><summary>B2 选填（建议有则填）</summary>'+
+    '<details class="opt" '+(p.jnet!=="未评"||p.sslLike||p.relativePos!=="未填"||p.surfaceErosionUlcer!=="none"||p.surfaceNodular||p.ulcerNodule||p.opticalConf!=="未填"?"open":"")+'><summary>B2 选填（建议有则填）</summary>'+
     '<div class="grid" style="margin-top:10px">'+
     '<div class="fld"><label class="lb">JNET</label><select data-pk="jnet"'+dis+'>'+selOpts(JNET_OPTS,p.jnet)+'</select></div>'+
     '<div class="fld"><label class="lb">段内相对位置</label><select data-pk="relativePos"'+dis+'>'+selOpts(POS_OPTS,p.relativePos)+'</select></div>'+
     '<div class="fld"><label class="lb">光学结论置信度</label><select data-pk="opticalConf"'+dis+'>'+selOpts(CONF_OPTS,p.opticalConf)+'</select></div>'+
     '</div>'+
     '<div class="fld"><label class="lb">SSL 样外观</label>'+chipYN("sslLike",p.sslLike,ml)+'</div>'+
-    '<div class="fld"><label class="lb">溃疡/白苔或明显结节</label>'+chipYN("ulcerNodule",p.ulcerNodule,ml)+'</div>'+
+    sslFlagFields(p,ml)+
+    '<div class="fld"><label class="lb">表面糜烂/溃疡</label>'+chipErosion(p.surfaceErosionUlcer,ml)+'</div>'+
+    (needsSeparate(p)?'<div class="note n-bad"><b>必须单独送检</b> 建议单独送检，评估深部浸润</div>':'')+
+    '<label class="sw"><input type="checkbox" id="surfNod"'+(p.surfaceNodular?" checked":"")+dis+'><span>表面结节/颗粒不均</span></label>'+
+    (p.ulcerNodule?'<div class="note n-warn"><b>旧值保留</b> 原「溃疡/白苔或明显结节」无法区分糜烂/溃疡与结节，原值仍保存在记录中。</div>':'')+
     '</details>'+
     '<h3>B3 病理后补</h3>'+
     '<div class="note n-info">锁定后仍可填写病理。</div>'+
@@ -575,13 +619,30 @@ function renderPolypSheet(){
       b.onclick=function(){
         if(ml)return;
         p[name]=b.getAttribute("data-v")==="1";
+        if(name==="sslLike"&&!p.sslLike)clearSslFlags(p);
         saveSoon();renderPolypSheet();
       };
     });
   });
+  $("#ovBody").querySelectorAll("[data-ssl]").forEach(function(el){
+    el.onchange=function(){if(ml)return;p[el.getAttribute("data-ssl")]=!!el.checked;saveSoon();};
+  });
+  var eros=$("#ovBody").querySelector("[data-eros]");
+  if(eros)eros.querySelectorAll(".chip").forEach(function(b){
+    b.onclick=function(){if(ml)return;p.surfaceErosionUlcer=b.getAttribute("data-v");saveSoon();renderPolypSheet();};
+  });
+  var nod=$("#surfNod");
+  if(nod)nod.onchange=function(){if(ml)return;p.surfaceNodular=!!nod.checked;saveSoon();};
 }
 
 /* ===== 导出导入 ===== */
+function exportSegments(list){
+  return list.map(function(seg){
+    var s=JSON.parse(JSON.stringify(seg));
+    s.polyps=(s.polyps||[]).map(function(p){var c=JSON.parse(JSON.stringify(p));c.waspCount=waspCountOf(p);return c;});
+    return s;
+  });
+}
 async function exportJson(){
   if(!sessKey)return;
   if(S.view==="edit"&&saveT)await flushSave();
@@ -592,7 +653,7 @@ async function exportJson(){
     '<p style="font-size:13px;color:var(--mut)">加密备份需导出时密码；明文方便统计脚本读取。</p>',
     collect:function(root){return {mode:root.querySelector('input[name="bm"]:checked').value};}});
   if(!r)return;
-  var arr=Array.from(cache.values()),dev=deviceName(),t=nowIso(),obj;
+  var arr=exportSegments(Array.from(cache.values())),dev=deviceName(),t=nowIso(),obj;
   if(r.mode==="enc"){
     var e=await aesEnc(sessKey,JSON.stringify({segments:arr}),"backup");
     obj={app:APP_NAME,version:1,encrypted:true,exportedAt:t,device:dev,count:arr.length,kdf:{name:"PBKDF2-SHA256",iter:authRec.iter,salt:authRec.salt},iv:e.iv,ct:e.ct};
