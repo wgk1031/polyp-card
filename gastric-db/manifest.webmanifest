@@ -1,0 +1,17 @@
+{
+  "name": "萎缩性胃炎与胃早癌采集",
+  "short_name": "胃早癌库",
+  "description": "萎缩性胃炎与胃早癌内镜数据库，数据仅存本机并加密",
+  "lang": "zh-Hans",
+  "start_url": "/polyp-card/gastric-db/",
+  "scope": "/polyp-card/gastric-db/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7f1d1d",
+  "theme_color": "#7f1d1d",
+  "icons": [
+    {"src": "/polyp-card/gastric-db/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/polyp-card/gastric-db/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/polyp-card/gastric-db/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
