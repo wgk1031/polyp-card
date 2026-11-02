@@ -1,5 +1,5 @@
 /* 仅缓存本站静态文件，便于添加到主屏幕后离线打开；不缓存任何用户数据 */
-const C = 'segment-study-card-v4';
+const C = 'segment-study-card-v5';
 const BASE = '/polyp-card/segment-study/';
 const FILES = [BASE, BASE + 'index.html', BASE + 'manifest.webmanifest', BASE + 'icon-192.png', BASE + 'icon-512.png', BASE + 'apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });

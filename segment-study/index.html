@@ -131,6 +131,7 @@ code{background:#eef2f5;padding:1px 5px;border-radius:4px;font-size:13px}
   <h1><span>多发息肉段内送检课题采集</span><small id="saveState">载入中…</small></h1>
   <div class="bk-row">
     <button class="btn bk-b" id="topExport">⬇ 导出JSON</button>
+    <button class="btn bk-b" id="topCsv" type="button">导出 CSV</button>
     <button class="btn bk-b" id="topImport">⬆ 导入JSON</button>
     <button class="btn bk-b" id="lockBtn">🔒 锁定</button>
     <span class="bk-last" id="bkLast"></span>
@@ -480,14 +481,14 @@ function renderList(){
     '<div class="filters">'+filters+'</div>'+
     '<div style="font-size:13px;color:var(--mut);margin-bottom:8px">共 '+items.length+' 条 · 库内 '+cache.size+' 条</div>'+body+'</div>'+
     '<div class="card"><h2>备份与说明</h2>'+
-    '<div class="row" style="margin-bottom:10px"><button class="btn" id="bExp">⬇ 导出JSON</button><button class="btn" id="bImp">⬆ 导入JSON</button><button class="btn" id="bPw">修改密码</button><button class="btn dng" id="bClear">清空本机</button></div>'+
+    '<div class="row" style="margin-bottom:10px"><button class="btn" id="bExp">⬇ 导出JSON</button><button class="btn" id="bCsv" type="button">导出 CSV</button><button class="btn" id="bImp">⬆ 导入JSON</button><button class="btn" id="bPw">修改密码</button><button class="btn dng" id="bClear">清空本机</button></div>'+
     '<ul class="t"><li>本工具不做术中送检推荐；只采集段内全分瓶研究所需字段。</li><li>存储：'+esc(backendName)+' · 用户 '+esc(sessUser)+'</li><li>空闲 15 分钟自动锁定。密码无法找回。</li></ul></div>';
   $("#btnNew").onclick=function(){newSegment();};
   $("#btnStats").onclick=function(){showView("stats");};
   $("#q").oninput=function(){S.q=this.value;renderList();};
   $("#main").querySelectorAll("[data-filter]").forEach(function(b){b.onclick=function(){S.filter=b.getAttribute("data-filter");renderList();};});
   $("#main").querySelectorAll("[data-open]").forEach(function(el){el.onclick=function(){openSegment(el.getAttribute("data-open"));};});
-  $("#bExp").onclick=exportJson;$("#bImp").onclick=pickImport;$("#bPw").onclick=doChangePassword;$("#bClear").onclick=function(){doClearAll(false);};
+  $("#bExp").onclick=exportJson;$("#bCsv").onclick=exportCsv;$("#bImp").onclick=pickImport;$("#bPw").onclick=doChangePassword;$("#bClear").onclick=function(){doClearAll(false);};
   renderBanner();
 }
 
@@ -705,6 +706,72 @@ async function exportJson(){
   }else obj={app:APP_NAME,version:1,exportedAt:t,device:dev,count:arr.length,segments:arr};
   download("段内送检课题备份_"+safeName(dev||"设备")+"_"+stamp()+(r.mode==="enc"?"_加密":"_明文")+".json",new Blob([JSON.stringify(obj,null,r.mode==="enc"?0:2)],{type:"application/json"}));
   lsSet(LS_BK,t);renderBanner();toast("已导出 "+arr.length+" 条段记录");
+}
+function csvCell(v){var s=v==null?"":String(v);return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function ynCell(v){return v?"是":"否";}
+function erosCell(v){return v==="erosion"?"糜烂":v==="ulcer"?"溃疡":v==="none"||v===""||v==null?"无":String(v);}
+function villousCell(v){if(v==null||v==="")return "未填";if(v==="none")return "无";if(v==="lt25")return "<25%";if(v==="ge25")return "≥25%";if(v==="有")return "有（请补选）";return String(v);}
+var CSV_COLS=[
+  ["脱敏病例ID",function(s){return s.caseId;}],
+  ["检查日期",function(s){return s.examDate;}],
+  ["中心编码",function(s){return s.centerCode;}],
+  ["术者编码",function(s){return s.operatorCode;}],
+  ["入组肠段",function(s){return s.segment;}],
+  ["目标段息肉总枚数",function(s){return s.plannedCount;}],
+  ["备注",function(s){return s.note;}],
+  ["数据锁定",function(s){return ynCell(s.locked);}],
+  ["段记录ID",function(s){return s.id;}],
+  ["创建时间",function(s){return s.createdAt;}],
+  ["更新时间",function(s){return s.updatedAt;}],
+  ["息肉ID",function(s,p){return p.id;}],
+  ["序号",function(s,p){return p.seq;}],
+  ["瓶号",function(s,p){return p.bottle;}],
+  ["最大径mm",function(s,p){return p.sizeMm;}],
+  ["Paris",function(s,p){return p.paris;}],
+  ["NICE",function(s,p){return p.nice;}],
+  ["切除方式",function(s,p){return p.resection;}],
+  ["完整切除",function(s,p){return p.completeResection;}],
+  ["发红",function(s,p){return ynCell(p.redness);}],
+  ["凹陷（含 IIc）",function(s,p){return ynCell(p.depressed);}],
+  ["回收成功",function(s,p){return ynCell(p.retrieved);}],
+  ["JNET",function(s,p){return p.jnet;}],
+  ["段内相对位置",function(s,p){return p.relativePos;}],
+  ["光学结论置信度",function(s,p){return p.opticalConf;}],
+  ["SSL样外观",function(s,p){return ynCell(p.sslLike);}],
+  ["粘液帽",function(s,p){return ynCell(p.sslMucusCap);}],
+  ["云雾状表面",function(s,p){return ynCell(p.sslCloudSurface);}],
+  ["边界不清",function(s,p){return ynCell(p.sslIndistinctBorder);}],
+  ["形态不规则",function(s,p){return ynCell(p.sslIrregularShape);}],
+  ["表面糜烂/溃疡",function(s,p){return erosCell(p.surfaceErosionUlcer);}],
+  ["表面结节/颗粒不均",function(s,p){return ynCell(p.surfaceNodular);}],
+  ["旧值溃疡白苔或结节",function(s,p){if(p.ulcerNodule==null||p.ulcerNodule==="")return "";if(p.ulcerNodule===true||p.ulcerNodule==="是"||p.ulcerNodule==="true")return "是";if(p.ulcerNodule===false)return "否";return String(p.ulcerNodule);}],
+  ["病理类型",function(s,p){return p.pathType;}],
+  ["异型程度",function(s,p){return p.dysplasia;}],
+  ["绒毛成分",function(s,p){return villousCell(p.villous);}],
+  ["SSL伴异型",function(s,p){return p.sslDysplasia;}],
+  ["切缘",function(s,p){return p.margin;}],
+  ["病理报告日",function(s,p){return p.pathDate;}],
+  ["WASP勾选数",function(s,p){return p.waspCount;}],
+  ["进展期腺瘤",function(s,p){return ynCell(p.advancedAdenoma);}],
+  ["进展期锯齿状病变",function(s,p){return ynCell(p.advancedSerrated);}],
+  ["进展期肿瘤",function(s,p){return ynCell(p.advancedNeoplasia);}],
+  ["HP≥10mm",function(s,p){return ynCell(p.hpGe10);}]
+];
+function buildPolypCsv(segments){
+  var lines=[CSV_COLS.map(function(c){return csvCell(c[0]);}).join(",")];
+  segments.forEach(function(s){(s.polyps||[]).forEach(function(p){lines.push(CSV_COLS.map(function(c){return csvCell(c[1](s,p));}).join(","));});});
+  return "\uFEFF"+lines.join("\r\n");
+}
+async function exportCsv(){
+  if(!sessKey)return;
+  if(S.view==="edit"&&saveT)await flushSave();
+  await saveQueue;
+  var arr=exportSegments(Array.from(cache.values()));
+  arr.sort(function(a,b){return String(a.examDate).localeCompare(String(b.examDate))||String(a.caseId).localeCompare(String(b.caseId));});
+  arr.forEach(function(s){(s.polyps||[]).sort(function(a,b){return (a.seq||0)-(b.seq||0);});});
+  var n=0;arr.forEach(function(s){n+=(s.polyps||[]).length;});
+  download("段内送检息肉表_"+stamp()+".csv",new Blob([buildPolypCsv(arr)],{type:"text/csv;charset=utf-8"}));
+  toast("已导出 "+n+" 行息肉");
 }
 async function decryptBackup(obj){
   if(!obj.kdf||!obj.kdf.salt||!obj.iv||!obj.ct||!(obj.kdf.iter>0&&obj.kdf.iter<=5000000)){alert("导入失败：加密备份格式不正确。");return null;}
@@ -963,7 +1030,7 @@ function render(){
 }
 
 async function init(){
-  $("#topExport").onclick=exportJson;$("#topImport").onclick=pickImport;
+  $("#topExport").onclick=exportJson;$("#topCsv").onclick=exportCsv;$("#topImport").onclick=pickImport;
   $("#lockBtn").onclick=function(){lockNow("已锁定。");};
   $("#impFile").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;var r=new FileReader();r.onload=function(){importJsonText(String(r.result));};r.readAsText(f,"utf-8");});
   $("#fab").onclick=function(){if(S.view==="edit")addPolyps(1);};
